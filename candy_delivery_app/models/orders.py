@@ -13,7 +13,7 @@ class OrdersPostRequestModel(BaseModel):
 
 
 class OrderId(BaseModel):
-    id_: int = Field(..., alias="id", ge=0)
+    id: int
 
 
 class OrdersIds(BaseModel):
