@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
-engine = create_async_engine("postgresql+asyncpg://postgres:samedov@localhost:5432/postgres", echo=True)
+
+# TODO: .env
+engine = create_async_engine(
+    "postgresql+asyncpg://postgres:samedov@localhost:5432/postgres", echo=True
+)
 
 session = sessionmaker(engine, class_=AsyncSession)
 
@@ -14,6 +18,7 @@ def get_session(func):
         response = await func(request, session)
         await async_session.close()
         return response
+
     return wrapper
 
 

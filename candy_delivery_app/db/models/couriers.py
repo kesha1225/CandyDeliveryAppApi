@@ -5,7 +5,7 @@ from ...models.couriers import CourierType
 
 
 class Courier(Base):
-    __tablename__ = 'couriers'
+    __tablename__ = "couriers"
 
     id = Column(Integer, primary_key=True)
     courier_type = Column(Enum(CourierType))
