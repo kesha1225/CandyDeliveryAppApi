@@ -3,7 +3,7 @@ from typing import Tuple, Union
 
 from pydantic import ValidationError
 
-from ..models.сouriers import CouriersPostRequestModel
+from ..models.couriers import CouriersPostRequestModel
 
 
 class ABCModel(abc.ABC):
