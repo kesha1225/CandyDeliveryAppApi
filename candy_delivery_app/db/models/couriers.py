@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, Enum, ARRAY, FLOAT, DECIMAL
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import Base
 from ...models.couriers import CourierType
@@ -15,3 +17,17 @@ class Courier(Base):
     earnings = Column(DECIMAL)
 
     # TODO: отношения с ордерами (интимные)
+
+    @classmethod
+    async def create_couriers(cls, session: AsyncSession, json_data: dict):
+        # TODO: проверка есть ли уже в базе айдишник
+        couriers = []
+        for data in json_data["data"]:
+            data["id"] = data.pop("courier_id")
+            couriers.append(Courier(**data))
+        session.add_all(couriers)
+        try:
+            await session.commit()
+        except IntegrityError as e:
+            return None
+        return couriers
