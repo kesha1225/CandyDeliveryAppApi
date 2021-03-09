@@ -14,9 +14,10 @@ class ABCModel(abc.ABC):
     ) -> Tuple[int, str, Union[dict, CouriersPostRequestModel]]:
         ...
 
-    @staticmethod
-    def error_handler(json_data: dict, validation_error: ValidationError) -> dict:
-        ...
-
-    def success_handler(self):
-        ...
+    # @staticmethod
+    # def error_handler(json_data: dict, validation_error: ValidationError) -> dict:
+    #     ...
+    #
+    # @staticmethod
+    # def success_handler(values):
+    #     ...

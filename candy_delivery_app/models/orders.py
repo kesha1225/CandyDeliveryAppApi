@@ -6,9 +6,9 @@ from ._types import COURIER_ID, ORDER_ID
 
 
 class OrdersPostRequestModel(BaseModel):
-    order_id: ORDER_ID = Field(..., ge=0)
-    weight: int = Field(..., ge=0)
-    region: int = Field(..., ge=0)
+    order_id: ORDER_ID = Field(..., gt=0)
+    weight: float = Field(..., gt=0.0)
+    region: int = Field(..., gt=0)
     delivery_hours: List[str] = Field(..., min_items=1)
 
 
@@ -21,13 +21,13 @@ class OrdersIds(BaseModel):
 
 
 class OrdersAssignPostRequestModel(BaseModel):
-    courier_id: COURIER_ID = Field(..., ge=0)
+    courier_id: COURIER_ID = Field(..., gt=0)
 
 
 class OrdersCompletePostRequestModel(BaseModel):
-    courier_id: COURIER_ID = Field(..., ge=0)
-    order_id: ORDER_ID = Field(..., ge=0)
+    courier_id: COURIER_ID = Field(..., gt=0)
+    order_id: ORDER_ID = Field(..., gt=0)
 
 
 class OrdersCompletePostResponseModel(BaseModel):
-    order_id: ORDER_ID = Field(..., ge=0)
+    order_id: ORDER_ID = Field(..., gt=0)

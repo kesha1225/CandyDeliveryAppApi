@@ -13,18 +13,18 @@ class CourierType(str, Enum):
 
 
 class CourierItem(BaseModel):
-    courier_id: COURIER_ID = Field(..., ge=0)
+    courier_id: COURIER_ID = Field(..., gt=0)
     courier_type: CourierType
-    regions: REGIONS = Field(..., min_items=1, ge=0)
+    regions: REGIONS = Field(..., min_items=1, gt=0)
     working_hours: WORKING_HOURS = Field(..., min_items=1)
 
 
 class CourierId(BaseModel):
-    id: int
+    id: int = Field(..., gt=0)
 
 
 class CouriersIds(BaseModel):
-    couriers: List[CourierId]
+    couriers: List[int] = Field(..., min_items=1, gt=0)
 
 
 class CouriersPostRequestModel(BaseModel):
@@ -32,9 +32,9 @@ class CouriersPostRequestModel(BaseModel):
 
 
 class CourierGetResponseModel(BaseModel):
-    courier_id: COURIER_ID = Field(..., ge=0)
+    courier_id: COURIER_ID = Field(..., gt=0)
     courier_type: CourierType
-    regions: REGIONS = Field(..., min_items=1, ge=0)
+    regions: REGIONS = Field(..., min_items=1, gt=0)
     working_hours: WORKING_HOURS = Field(..., min_items=1)
     rating: float = Field(..., ge=0.0)
     earnings: Decimal = Field(..., ge=0)
@@ -42,5 +42,5 @@ class CourierGetResponseModel(BaseModel):
 
 class CourierUpdateRequestModel(BaseModel):
     courier_type: Optional[CourierType]
-    regions: Optional[REGIONS] = Field(None, min_items=1, ge=0)
+    regions: Optional[REGIONS] = Field(None, min_items=1, gt=0)
     working_hours: Optional[WORKING_HOURS] = Field(None, min_items=1)
