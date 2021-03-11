@@ -56,7 +56,7 @@ class CouriersPostRequest(ABCModel, CouriersPostRequestModel):
     ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
         json_data = await request.json()
 
-        status_code, reason, data = await CouriersPostRequest.get_model_from_json_data(
+        status_code, reason, data = await cls.get_model_from_json_data(
             json_data=json_data
         )
         if status_code == 400:  # validation error
@@ -130,7 +130,7 @@ class CouriersUpdateRequest(ABCModel, CourierUpdateRequestModel):
     async def patch_courier(
         cls, session: AsyncSession, request: Request
     ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
-        status_code, reason, data = await CouriersUpdateRequest.get_model_from_json_data(request=request)
+        status_code, reason, data = await cls.get_model_from_json_data(request=request)
         if status_code == 400:
             return status_code, reason, data
 
