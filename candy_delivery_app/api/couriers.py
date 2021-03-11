@@ -18,7 +18,7 @@ async def import_couriers(request: Request, session: AsyncSession):
     # TODO: working_hours validate
     # TODO: а если ниче не пришло)
 
-    status_code, reason, data, = await CouriersPostRequest.get_web_response_for_create_courier(
+    status_code, reason, data, = await CouriersPostRequest.create_courier(
         session=session, request=request
     )
     return web.json_response(data=data, status=status_code, reason=reason)
@@ -29,7 +29,7 @@ async def import_couriers(request: Request, session: AsyncSession):
 async def patch_courier(request: Request, session: AsyncSession):
     # TODO: а че если такого айди в базе нет)
 
-    status_code, reason, data = await CouriersUpdateRequest.get_web_response_for_courier_patch(
+    status_code, reason, data = await CouriersUpdateRequest.patch_courier(
         session=session, request=request
     )
     return web.json_response(data=data, status=status_code, reason=reason)

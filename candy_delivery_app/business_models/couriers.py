@@ -51,7 +51,7 @@ class CouriersPostRequest(ABCModel, CouriersPostRequestModel):
         return {"couriers": [{"id": courier.courier_id} for courier in values]}
 
     @classmethod
-    async def get_web_response_for_create_courier(
+    async def create_courier(
             cls, session: AsyncSession, request: Request
     ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
         json_data = await request.json()
@@ -127,7 +127,7 @@ class CouriersUpdateRequest(ABCModel, CourierUpdateRequestModel):
         return values
 
     @classmethod
-    async def get_web_response_for_courier_patch(
+    async def patch_courier(
         cls, session: AsyncSession, request: Request
     ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
         status_code, reason, data = await CouriersUpdateRequest.get_model_from_json_data(request=request)
