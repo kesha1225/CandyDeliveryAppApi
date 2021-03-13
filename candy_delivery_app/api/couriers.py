@@ -7,7 +7,6 @@ from ..business_models.couriers import (
     CouriersUpdateRequest,
 )
 from ..db.db import get_session
-from ..db.models.couriers import Courier
 
 couriers_router = web.RouteTableDef()
 
