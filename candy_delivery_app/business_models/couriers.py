@@ -11,15 +11,29 @@ from ..models.couriers import (
     CourierItem,
     CourierId,
     CourierUpdateRequestModel,
+    CouriersIds,
+    CouriersBadRequestModel, CouriersBadRequestEmptyModel, CourierUpdateResponseModel,
 )
 from ..models._types import STATUS_CODE, REASON, MODEL_DATA
+
+
+class CouriersResponse:
+    def __init__(
+        self,
+        status_code: STATUS_CODE,
+        reason: REASON,
+        response_data: Union[CouriersIds, CouriersBadRequestModel, dict],
+    ):
+        self.status_code = status_code
+        self.reason = reason
+        self.response_data = response_data
 
 
 class CouriersPostRequest(ABCModel, CouriersPostRequestModel):
     @classmethod
     async def get_model_from_json_data(
         cls, json_data: dict
-    ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
+    ) -> Tuple[STATUS_CODE, REASON, dict]:
         values, fields_set, error = validate_model(cls, json_data)
         if error is not None:
             return 400, "Bad Request", cls.error_handler(json_data, error)
@@ -27,7 +41,9 @@ class CouriersPostRequest(ABCModel, CouriersPostRequestModel):
         return 201, "Created", cls.success_handler(values["data"])
 
     @staticmethod
-    def error_handler(json_data: dict, validation_error: ValidationError) -> dict:
+    def error_handler(
+        json_data: dict, validation_error: ValidationError
+    ) -> dict:
         bad_data_ids = []
 
         if json_data["data"]:  # нам могут отправить пустой список
@@ -47,27 +63,48 @@ class CouriersPostRequest(ABCModel, CouriersPostRequestModel):
         return response_bad_data
 
     @staticmethod
-    def success_handler(values: List[CourierItem]):
+    def success_handler(values: List[CourierItem]) -> dict:
         return {"couriers": [{"id": courier.courier_id} for courier in values]}
 
     @classmethod
-    async def create_courier(
-            cls, session: AsyncSession, request: Request
-    ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
+    async def create_couriers(
+        cls, session: AsyncSession, request: Request
+    ) -> CouriersResponse:
         json_data = await request.json()
 
         status_code, reason, data = await cls.get_model_from_json_data(
             json_data=json_data
         )
+
+        # TODO: чета вот эти две проверки какие то фу
         if status_code == 400:  # validation error
-            return status_code, reason, data
+            print(data)
+            return CouriersResponse(
+                status_code=status_code,
+                reason=reason,
+                response_data=CouriersBadRequestModel.parse_obj(data),
+            )
 
         couriers, errors_ids = await Courier.create_couriers(
             session=session, json_data=json_data
         )
-        if errors_ids is not None:  # IntegrityError
-            return 409, "Id Dublicates", {"integrity_error": {"couriers": [{"id": id_} for id_ in errors_ids]}}
-        return status_code, reason, data
+        if errors_ids is not None:
+            return CouriersResponse(
+                status_code=400,
+                reason="Bad Request",
+                response_data=CouriersBadRequestModel.parse_obj(
+                    {
+                        "validation_error": {
+                            "couriers": [{"id": id_} for id_ in errors_ids]
+                        }
+                    }
+                ),
+            )
+        return CouriersResponse(
+            status_code=status_code,
+            reason=reason,
+            response_data=CouriersIds.parse_obj(data),
+        )
 
 
 class CourierIdRequest(ABCModel, CourierId):
@@ -80,13 +117,16 @@ class CourierIdRequest(ABCModel, CourierId):
         )
 
         if error is not None:
-            return 400, "Invalid Data", cls.error_handler(..., ...)
+            return 400, "Bad Request", cls.error_handler()
 
         return 200, "OK", cls.success_handler(values)
 
     @staticmethod
-    def error_handler(json_data: dict, validation_error: ValidationError) -> dict:
-        return {"request_error": "courier_id invalid or not set"}
+    def error_handler() -> dict:
+        """
+        В случае, если передано неописанное поле — вернуть HTTP 400 Bad Request.
+        """
+        return {}
 
     @staticmethod
     def success_handler(values):
@@ -113,8 +153,8 @@ class CouriersUpdateRequest(ABCModel, CourierUpdateRequestModel):
             return 400, "Bad Request", cls.error_handler(..., ...)
 
         return (
-            201,
-            "Created",
+            200,
+            "OK",
             cls.success_handler({"new_data": values, "courier_id": data}),
         )
 
@@ -129,21 +169,25 @@ class CouriersUpdateRequest(ABCModel, CourierUpdateRequestModel):
     @classmethod
     async def patch_courier(
         cls, session: AsyncSession, request: Request
-    ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
+    ) -> CouriersResponse:
         status_code, reason, data = await cls.get_model_from_json_data(request=request)
         if status_code == 400:
-            return status_code, reason, data
+            return CouriersResponse(
+                status_code=status_code, reason=reason, response_data=CouriersBadRequestEmptyModel.parse_obj(data)
+            )
 
         new_courier = await Courier.patch_courier(
             session=session, courier_id=data["courier_id"], new_data=data["new_data"]
         )
-        return (
-            200,
-            "OK",
-            {
-                "courier_id": new_courier.id,
-                "courier_type": new_courier.courier_type,
-                "regions": new_courier.regions,
-                "working_hours": new_courier.working_hours,
-            },
+        return CouriersResponse(
+            status_code=status_code,
+            reason=reason,
+            response_data=CourierUpdateResponseModel.parse_obj(
+                {
+                    "courier_id": new_courier.id,
+                    "courier_type": new_courier.courier_type,
+                    "regions": new_courier.regions,
+                    "working_hours": new_courier.working_hours,
+                }
+            ),
         )

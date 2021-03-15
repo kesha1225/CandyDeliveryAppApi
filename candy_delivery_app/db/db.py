@@ -14,6 +14,7 @@ session = sessionmaker(engine, class_=AsyncSession)
 
 def get_session(func):
     async def wrapper(request):
+        #await update_base()
         async_session = session()
         print((await async_session.execute("SELECT * FROM couriers")).fetchall())
         response = await func(request, async_session)

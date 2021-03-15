@@ -1,1 +1,1 @@
-from ._types import REGIONS, WORKING_HOURS, ORDER_ID, COURIER_ID
+from ._types import REGIONS, HOURS_LIST, ORDER_ID, COURIER_ID

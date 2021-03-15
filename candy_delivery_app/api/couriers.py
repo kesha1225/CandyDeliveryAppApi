@@ -17,10 +17,10 @@ async def import_couriers(request: Request, session: AsyncSession):
     # TODO: working_hours validate
     # TODO: а если ниче не пришло)
 
-    status_code, reason, data, = await CouriersPostRequest.create_courier(
+    response = await CouriersPostRequest.create_couriers(
         session=session, request=request
     )
-    return web.json_response(data=data, status=status_code, reason=reason)
+    return web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)
 
 
 @couriers_router.patch("/couriers/{courier_id}")
@@ -28,7 +28,7 @@ async def import_couriers(request: Request, session: AsyncSession):
 async def patch_courier(request: Request, session: AsyncSession):
     # TODO: а че если такого айди в базе нет)
 
-    status_code, reason, data = await CouriersUpdateRequest.patch_courier(
+    response = await CouriersUpdateRequest.patch_courier(
         session=session, request=request
     )
-    return web.json_response(data=data, status=status_code, reason=reason)
+    return web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)
