@@ -14,7 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .base import get_items_list_from_json, find_duplicates, base_create
+from .base import base_db_create
 from ..db import Base
 from ...models.couriers import CourierType
 
@@ -31,24 +31,11 @@ class Courier(Base):
 
     # TODO: отношения с ордерами (интимные)
 
-    @staticmethod
-    async def find_duplicates(
-        session: AsyncSession, couriers_list: List["Courier"]
-    ) -> List[int]:
-        ids = [courier.id for courier in couriers_list]
-        old_ids = [
-            data[0]
-            for data in (
-                await session.execute(select(Courier.id).where(Courier.id.in_(ids)))
-            ).fetchall()
-        ]
-        return old_ids
-
     @classmethod
     async def create_couriers(
         cls, session: AsyncSession, json_data: dict
     ) -> Tuple[Optional[List[Union["Courier", int]]], Optional[List[int]]]:
-        return await base_create(session=session, json_data=json_data, db_class=cls, id_key="courier_id")
+        return await base_db_create(session=session, json_data=json_data, db_class=cls, id_key="courier_id")
 
     @classmethod
     async def get_courier(cls, session: AsyncSession, courier_id: int) -> "Courier":

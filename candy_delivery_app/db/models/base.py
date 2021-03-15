@@ -34,7 +34,7 @@ async def find_duplicates(
     return old_ids
 
 
-async def base_create(
+async def base_db_create(
     session: AsyncSession,
     json_data: dict,
     db_class: Union[Type["Order"], Type["Courier"]],
