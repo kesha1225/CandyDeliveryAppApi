@@ -13,7 +13,7 @@ from ..models.couriers import (
 )
 
 
-class CouriersResponse:
+class ApiResponse:
     def __init__(
         self,
         status_code: STATUS_CODE,

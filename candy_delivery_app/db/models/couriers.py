@@ -14,6 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .base import get_items_list_from_json, find_duplicates
 from ..db import Base
 from ...models.couriers import CourierType
 
@@ -43,20 +44,12 @@ class Courier(Base):
         ]
         return old_ids
 
-    @staticmethod
-    def get_couriers_list_from_json(json_data: dict) -> List["Courier"]:
-        couriers = []
-        for data in json_data["data"]:
-            data["id"] = data.pop("courier_id")
-            couriers.append(Courier(**data))
-        return couriers
-
     @classmethod
     async def create_couriers(
         cls, session: AsyncSession, json_data: dict
     ) -> Tuple[Optional[List[Union["Courier", int]]], Optional[List[int]]]:
-        couriers = cls.get_couriers_list_from_json(json_data)
-        old_ids = await cls.find_duplicates(session=session, couriers_list=couriers)
+        couriers = get_items_list_from_json(json_data=json_data, db_class=cls, id_key="courier_id")
+        old_ids = await find_duplicates(session=session, elements=couriers, db_class=cls)
 
         if old_ids:
             return None, old_ids

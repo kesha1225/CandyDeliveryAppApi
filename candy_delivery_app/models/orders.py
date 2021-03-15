@@ -1,34 +1,42 @@
 from typing import List
 
-from pydantic import Field
+from pydantic import Field, conint, confloat
 
 from ._types import COURIER_ID, ORDER_ID, HOURS_LIST
 from .settings import CoreModel
 
 
-class OrdersPostRequestModel(CoreModel):
-    order_id: ORDER_ID = Field(..., gt=0)
-    weight: float = Field(..., gt=0.0)
-    region: int = Field(..., gt=0)
+class OrderItem(CoreModel):
+    order_id: ORDER_ID
+    weight: confloat(strict=True, gt=0.0)
+    region: conint(strict=True, gt=0)
     delivery_hours: HOURS_LIST
 
 
 class OrderId(CoreModel):
-    id: int
+    id: ORDER_ID
 
 
 class OrdersIds(CoreModel):
     orders: List[OrderId] = Field(..., min_items=1)
 
 
+class OrdersPostRequestModel(CoreModel):
+    data: List[OrderItem] = Field(..., min_items=1)
+
+
+class OrdersBadRequestModel(CoreModel):
+    validation_error: OrdersIds
+
+
 class OrdersAssignPostRequestModel(CoreModel):
-    courier_id: COURIER_ID = Field(..., gt=0)
+    courier_id: COURIER_ID
 
 
 class OrdersCompletePostRequestModel(CoreModel):
-    courier_id: COURIER_ID = Field(..., gt=0)
-    order_id: ORDER_ID = Field(..., gt=0)
+    courier_id: COURIER_ID
+    order_id: ORDER_ID
 
 
 class OrdersCompletePostResponseModel(CoreModel):
-    order_id: ORDER_ID = Field(..., gt=0)
+    order_id: ORDER_ID

@@ -4,18 +4,18 @@ from aiohttp.web_request import Request
 from pydantic.main import validate_model
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from candy_delivery_app.business_models import ABCModel, CouriersResponse
+from candy_delivery_app.business_models import ABCModel, ApiResponse
 from candy_delivery_app.db.models.couriers import Courier
 from candy_delivery_app.models._types import STATUS_CODE, REASON, MODEL_DATA
 from candy_delivery_app.models.couriers import (
     CourierId,
     CourierUpdateRequestModel,
     CouriersBadRequestEmptyModel,
-    CourierUpdateResponseModel,
+    CourierUpdateResponseModel, CourierIdForQuery,
 )
 
 
-class CourierIdRequest(ABCModel, CourierId):
+class CourierIdRequest(ABCModel, CourierIdForQuery):
     """
     класс для получения айди из урла
     """
@@ -80,10 +80,10 @@ class CouriersUpdateRequest(ABCModel, CourierUpdateRequestModel):
     @classmethod
     async def patch_courier(
         cls, session: AsyncSession, request: Request
-    ) -> CouriersResponse:
+    ) -> ApiResponse:
         status_code, reason, data = await cls.get_model_from_json_data(request=request)
         if status_code == 400:
-            return CouriersResponse(
+            return ApiResponse(
                 status_code=status_code,
                 reason=reason,
                 response_data=CouriersBadRequestEmptyModel.parse_obj(data),
@@ -92,7 +92,7 @@ class CouriersUpdateRequest(ABCModel, CourierUpdateRequestModel):
         new_courier = await Courier.patch_courier(
             session=session, courier_id=data["courier_id"], new_data=data["new_data"]
         )
-        return CouriersResponse(
+        return ApiResponse(
             status_code=status_code,
             reason=reason,
             response_data=CourierUpdateResponseModel.parse_obj(

@@ -2,7 +2,7 @@ from enum import Enum
 from decimal import Decimal
 from typing import List, Optional
 
-from pydantic import Field, validator
+from pydantic import Field, validator, confloat, condecimal, conint
 from ._types import COURIER_ID, REGIONS, HOURS_LIST
 from .settings import CoreModel
 
@@ -14,14 +14,18 @@ class CourierType(str, Enum):
 
 
 class CourierItem(CoreModel):
-    courier_id: COURIER_ID = Field(..., gt=0)
+    courier_id: COURIER_ID
     courier_type: CourierType
-    regions: REGIONS = Field(..., min_items=1, gt=0)
+    regions: REGIONS
     working_hours: HOURS_LIST
 
 
 class CourierId(CoreModel):
-    id: int = Field(..., gt=0)
+    id: COURIER_ID
+
+
+class CourierIdForQuery(CoreModel):
+    id: conint(ge=0)
 
 
 class CouriersIds(CoreModel):
@@ -41,22 +45,22 @@ class CouriersBadRequestEmptyModel(CoreModel):
 
 
 class CourierGetResponseModel(CoreModel):
-    courier_id: COURIER_ID = Field(..., gt=0)
+    courier_id: COURIER_ID
     courier_type: CourierType
-    regions: REGIONS = Field(..., min_items=1, gt=0)
+    regions: REGIONS
     working_hours: HOURS_LIST
-    rating: Optional[float] = Field(None, ge=0.0)
-    earnings: Decimal = Field(..., ge=0)
+    rating: Optional[confloat(strict=True, ge=0.0)]
+    earnings: condecimal(ge=Decimal(0))
 
 
 class CourierUpdateRequestModel(CoreModel):
-    courier_type: Optional[CourierType]
-    regions: Optional[REGIONS] = Field(None, min_items=1, gt=0)
+    courier_type: Optional[CourierType] = None
+    regions: Optional[REGIONS] = None
     working_hours: Optional[HOURS_LIST] = None
 
 
 class CourierUpdateResponseModel(CoreModel):
-    courier_id: COURIER_ID = Field(..., gt=0)
+    courier_id: COURIER_ID
     courier_type: CourierType
-    regions: REGIONS = Field(..., min_items=1, gt=0)
+    regions: REGIONS
     working_hours: HOURS_LIST

@@ -8,6 +8,7 @@ period_re = re.compile(r"^(\d\d):(\d\d)-(\d\d):(\d\d)$")
 
 
 def hours_validate(_, value: HOURS_LIST):
+    # TODO: не забыть дописать его
     for raw_period in value:
         period = re.findall(period_re, raw_period)
         if not period:

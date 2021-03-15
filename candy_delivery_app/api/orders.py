@@ -2,15 +2,16 @@ from aiohttp import web
 from aiohttp.web_request import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..business_models.orders.post import OrdersPostRequest
 from ..db.db import get_session
 
-couriers_router = web.RouteTableDef()
+orders_router = web.RouteTableDef()
 
 
-@couriers_router.post("/orders")
+@orders_router.post("/orders")
 @get_session
 async def create_orders(request: Request, session: AsyncSession):
-    response = await CouriersPostRequest.create_couriers(
+    response = await OrdersPostRequest.create_orders(
         session=session, request=request
     )
     return web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)
