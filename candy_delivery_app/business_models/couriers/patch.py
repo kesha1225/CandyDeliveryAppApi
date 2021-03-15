@@ -4,8 +4,7 @@ from aiohttp.web_request import Request
 from pydantic.main import validate_model
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from candy_delivery_app.business_models import ABCModel
-from candy_delivery_app.business_models.couriers import CouriersResponse
+from candy_delivery_app.business_models import ABCModel, CouriersResponse
 from candy_delivery_app.db.models.couriers import Courier
 from candy_delivery_app.models._types import STATUS_CODE, REASON, MODEL_DATA
 from candy_delivery_app.models.couriers import (

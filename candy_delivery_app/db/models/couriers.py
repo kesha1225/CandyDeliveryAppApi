@@ -25,8 +25,8 @@ class Courier(Base):
     courier_type = Column(Enum(CourierType))
     regions = Column(ARRAY(Integer))
     working_hours = Column(ARRAY(String))
-    rating = Column(FLOAT)
-    earnings = Column(DECIMAL)
+    rating = Column(FLOAT, nullable=True)
+    earnings = Column(DECIMAL, nullable=True)
 
     # TODO: отношения с ордерами (интимные)
 

@@ -13,7 +13,7 @@ couriers_router = web.RouteTableDef()
 
 @couriers_router.post("/couriers")
 @get_session
-async def import_couriers(request: Request, session: AsyncSession):
+async def create_couriers(request: Request, session: AsyncSession):
     # TODO: working_hours validate
     # TODO: а если ниче не пришло)
 
