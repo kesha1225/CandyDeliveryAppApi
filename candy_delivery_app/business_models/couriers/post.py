@@ -44,7 +44,7 @@ class CouriersPostRequest(ABCModel, CouriersPostRequestModel):
     async def create_couriers(
         cls, session: AsyncSession, request: Request
     ) -> ApiResponse:
-        return base_creating(
+        return await base_creating(
             cls,
             session=session,
             request=request,

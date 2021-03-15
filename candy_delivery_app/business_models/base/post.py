@@ -49,7 +49,7 @@ def base_success_handler(values: List[BaseModel], items_key: str, id_key: str) -
     return {items_key: [{"id": element.dict()[id_key]} for element in values]}
 
 
-def base_creating(
+async def base_creating(
     cls,
     session: AsyncSession,
     request: Request,
