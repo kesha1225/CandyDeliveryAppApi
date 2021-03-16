@@ -10,11 +10,11 @@ from sqlalchemy import (
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .base import base_db_create
+from .base import BaseDbModel
 from ..db import Base
 
 
-class Order(Base):
+class Order(Base, BaseDbModel):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True)
@@ -26,4 +26,4 @@ class Order(Base):
     async def create_orders(
             cls, session: AsyncSession, json_data: dict
     ) -> Tuple[Optional[List[Union["Order", int]]], Optional[List[int]]]:
-        return await base_db_create(session=session, json_data=json_data, db_class=cls, id_key="order_id")
+        return await cls.base_db_create(session=session, json_data=json_data, id_key="order_id")

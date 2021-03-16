@@ -14,12 +14,12 @@ from sqlalchemy import (
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .base import base_db_create
+from .base import BaseDbModel
 from ..db import Base
 from ...models.couriers import CourierType
 
 
-class Courier(Base):
+class Courier(Base, BaseDbModel):
     __tablename__ = "couriers"
 
     id = Column(Integer, primary_key=True)
@@ -35,7 +35,7 @@ class Courier(Base):
     async def create_couriers(
         cls, session: AsyncSession, json_data: dict
     ) -> Tuple[Optional[List[Union["Courier", int]]], Optional[List[int]]]:
-        return await base_db_create(session=session, json_data=json_data, db_class=cls, id_key="courier_id")
+        return await cls.base_db_create(session=session, json_data=json_data, id_key="courier_id")
 
     @classmethod
     async def get_courier(cls, session: AsyncSession, courier_id: int) -> "Courier":
