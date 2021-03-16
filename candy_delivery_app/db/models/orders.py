@@ -19,11 +19,11 @@ class Order(Base, BaseDbModel):
 
     id = Column(Integer, primary_key=True)
     weight = Column(Float)
-    regions = Column(ARRAY(Integer))
+    region = Column(Integer)
     delivery_hours = Column(ARRAY(String))
 
     @classmethod
     async def create_orders(
-            cls, session: AsyncSession, json_data: dict
+        cls, session: AsyncSession, json_data: dict
     ) -> Tuple[Optional[List[Union["Order", int]]], Optional[List[int]]]:
         return await cls.create(session=session, json_data=json_data, id_key="order_id")

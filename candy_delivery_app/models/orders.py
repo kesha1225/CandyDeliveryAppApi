@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from pydantic import Field, conint, confloat
 
@@ -8,7 +8,7 @@ from .settings import CoreModel
 
 class OrderItem(CoreModel):
     order_id: ORDER_ID
-    weight: confloat(strict=True, gt=0.0)
+    weight: Union[confloat(strict=True, gt=0.0), conint(strict=True, gt=0)]
     region: conint(strict=True, gt=0)
     delivery_hours: HOURS_LIST
 

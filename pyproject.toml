@@ -9,8 +9,8 @@ python = "^3.7"
 pydantic = "^1.8.1"
 aiohttp = "^3.7.4"
 uvicorn = "^0.13.4"
-SQLAlchemy = "1.4.0b3"
 asyncpg = "^0.22.0"
+sqlalchemy = "^1.4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

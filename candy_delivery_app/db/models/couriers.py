@@ -35,7 +35,9 @@ class Courier(Base, BaseDbModel):
     async def create_couriers(
         cls, session: AsyncSession, json_data: dict
     ) -> Tuple[Optional[List[Union["Courier", int]]], Optional[List[int]]]:
-        return await cls.create(session=session, json_data=json_data, id_key="courier_id")
+        return await cls.create(
+            session=session, json_data=json_data, id_key="courier_id"
+        )
 
     @classmethod
     async def get_courier(cls, session: AsyncSession, courier_id: int) -> "Courier":

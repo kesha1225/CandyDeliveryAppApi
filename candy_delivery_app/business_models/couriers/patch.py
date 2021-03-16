@@ -8,10 +8,10 @@ from candy_delivery_app.business_models import ABCModel, ApiResponse
 from candy_delivery_app.db.models.couriers import Courier
 from candy_delivery_app.models._types import STATUS_CODE, REASON, MODEL_DATA
 from candy_delivery_app.models.couriers import (
-    CourierId,
     CourierUpdateRequestModel,
     CouriersBadRequestEmptyModel,
-    CourierUpdateResponseModel, CourierIdForQuery,
+    CourierUpdateResponseModel,
+    CourierIdForQuery,
 )
 
 
@@ -92,6 +92,13 @@ class CouriersUpdateRequest(ABCModel, CourierUpdateRequestModel):
         new_courier = await Courier.patch_courier(
             session=session, courier_id=data["courier_id"], new_data=data["new_data"]
         )
+        if new_courier is None:
+            return ApiResponse(
+                status_code=400,
+                reason="Bad Request",
+                response_data=CouriersBadRequestEmptyModel.parse_obj({}),
+            )
+
         return ApiResponse(
             status_code=status_code,
             reason=reason,
