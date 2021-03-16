@@ -35,29 +35,15 @@ class Courier(Base, BaseDbModel):
     async def create_couriers(
         cls, session: AsyncSession, json_data: dict
     ) -> Tuple[Optional[List[Union["Courier", int]]], Optional[List[int]]]:
-        return await cls.base_db_create(session=session, json_data=json_data, id_key="courier_id")
+        return await cls.create(session=session, json_data=json_data, id_key="courier_id")
 
     @classmethod
     async def get_courier(cls, session: AsyncSession, courier_id: int) -> "Courier":
-        result = (
-            await session.execute(select(Courier).where(Courier.id == courier_id))
-        ).first()[0]
-        return result
+        return await cls.get_one(session=session, _id=courier_id)
 
     @classmethod
     async def patch_courier(
         cls, session: AsyncSession, courier_id: int, new_data: dict
     ) -> Row:
         # TODO: пришело "regions": [1,1]
-
-        new_data = {k: v for k, v in new_data.items() if v is not None}
-        new_courier = (
-            await session.execute(
-                update(Courier)
-                .where(Courier.id == courier_id)
-                .values(new_data)
-                .returning(Courier)
-            )
-        ).first()
-        await session.commit()
-        return new_courier
+        return await cls.patch(session=session, _id=courier_id, new_data=new_data)

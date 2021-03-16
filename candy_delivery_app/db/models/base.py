@@ -1,6 +1,7 @@
-from typing import Union, List, Optional, Tuple, TypeVar
+from typing import Union, List, Optional, Tuple, TypeVar, ClassVar
 
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
 T = TypeVar("T")
@@ -31,7 +32,7 @@ class BaseDbModel:
         return old_ids
 
     @classmethod
-    async def base_db_create(
+    async def create(
         cls: T,
         session: AsyncSession,
         json_data: dict,
@@ -49,3 +50,19 @@ class BaseDbModel:
         session.add_all(elements)
         await session.commit()
         return elements, None
+
+    @classmethod
+    async def get(cls: T, session: AsyncSession, _id: int) -> ClassVar[T]:
+        result = (await session.execute(select(cls).where(cls.id == _id))).first()[0]
+        return result
+
+    @classmethod
+    async def patch(cls: T, session: AsyncSession, _id: int, new_data: dict) -> Row:
+        new_data = {k: v for k, v in new_data.items() if v is not None}
+        new_object = (
+            await session.execute(
+                update(cls).where(cls.id == _id).values(new_data).returning(cls)
+            )
+        ).first()
+        await session.commit()
+        return new_object

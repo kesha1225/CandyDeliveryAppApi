@@ -26,4 +26,4 @@ class Order(Base, BaseDbModel):
     async def create_orders(
             cls, session: AsyncSession, json_data: dict
     ) -> Tuple[Optional[List[Union["Order", int]]], Optional[List[int]]]:
-        return await cls.base_db_create(session=session, json_data=json_data, id_key="order_id")
+        return await cls.create(session=session, json_data=json_data, id_key="order_id")
