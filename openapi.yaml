@@ -28,7 +28,7 @@ paths:
                                 additionalProperties: false
                                 properties:
                                     validation_error:
-                                        $ref: '#/components/schemas/CouriersIds'
+                                        $ref: '#/components/schemas/CouriersIdsAP'
                                 required:
                                   - validation_error
 
@@ -94,7 +94,7 @@ paths:
                                 additionalProperties: false
                                 properties:
                                     validation_error:
-                                        $ref: '#/components/schemas/OrdersIds'
+                                        $ref: '#/components/schemas/OrdersIdsAP'
                                 required:
                                   - validation_error
 
@@ -184,6 +184,23 @@ components:
                     items:
                         type: object
                         additionalProperties: false
+                        properties:
+                            id:
+                                type: integer
+                        required:
+                          - id
+            required:
+              - couriers
+
+        CouriersIdsAP:
+            type: object
+            additionalProperties: true
+            properties:
+                couriers:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: true
                         properties:
                             id:
                                 type: integer
@@ -282,6 +299,23 @@ components:
                     items:
                         type: object
                         additionalProperties: false
+                        properties:
+                            id:
+                                type: integer
+                        required:
+                          - id
+            required:
+              - orders
+
+        OrdersIdsAP:
+            type: object
+            additionalProperties: true
+            properties:
+                orders:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: true
                         properties:
                             id:
                                 type: integer

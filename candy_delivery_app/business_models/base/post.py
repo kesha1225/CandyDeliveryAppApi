@@ -5,13 +5,13 @@ from pydantic import ValidationError, BaseModel
 from pydantic.main import validate_model
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from candy_delivery_app.business_models import ApiResponse, ABCModel
+from candy_delivery_app.business_models import ApiResponse
 from candy_delivery_app.models._types import STATUS_CODE, REASON
 from candy_delivery_app.models.couriers import CouriersBadRequestModel, CouriersIds
 from candy_delivery_app.models.orders import OrdersBadRequestModel, OrdersIds
 
 
-class BaseBusinessPostModel(ABCModel):
+class BaseBusinessPostModel:
     @classmethod
     async def get_model_from_json_data(
         cls, json_data: dict, id_key: str, items_key: str
@@ -39,7 +39,6 @@ class BaseBusinessPostModel(ABCModel):
         items_key: str,
     ) -> dict:
         bad_data_ids = []
-        print(validation_error.errors())
 
         if json_data["data"]:  # нам могут отправить пустой список
             for error in validation_error.errors():

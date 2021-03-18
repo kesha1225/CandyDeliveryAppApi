@@ -6,7 +6,7 @@ Base = declarative_base()
 
 # TODO: .env
 engine = create_async_engine(
-    "postgresql+asyncpg://postgres:samedov@localhost:5432/postgres", echo=False
+    "postgresql+asyncpg://postgres:samedov@localhost:5432/postgres", echo=True
 )
 
 session = sessionmaker(engine, class_=AsyncSession)
@@ -16,10 +16,13 @@ def get_session(func):
     async def wrapper(request):
         #await update_base()
         async_session = session()
-        print((await async_session.execute("SELECT * FROM couriers")).fetchall())
-        print((await async_session.execute("SELECT * FROM orders")).fetchall())
-        response = await func(request, async_session)
-        await async_session.close()
+        try:
+            response = await func(request, async_session)
+        finally:
+            #print((await async_session.execute("SELECT * FROM couriers")).fetchall())
+            #print((await async_session.execute("SELECT * FROM orders")).fetchall())
+            await async_session.close()
+
         return response
 
     return wrapper

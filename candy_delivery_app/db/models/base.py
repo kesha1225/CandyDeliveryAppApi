@@ -4,6 +4,8 @@ from sqlalchemy import select, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from candy_delivery_app.models.utils import get_timedeltas_from_string
+
 T = TypeVar("T")
 
 
@@ -11,7 +13,14 @@ class BaseDbModel:
     @classmethod
     def get_items_list_from_json(cls: T, json_data: dict, id_key: str) -> List[T]:
         couriers = []
+
+        # TODO: бяка
         for data in json_data["data"]:
+            if data.get("working_hours"):
+                data["working_hours"] = get_timedeltas_from_string(data.pop("working_hours"))
+            elif data.get("delivery_hours"):
+                data["delivery_hours"] = get_timedeltas_from_string(data.pop("delivery_hours"))
+
             data["id"] = data.pop(id_key)
             couriers.append(cls(**data))
         return couriers
@@ -52,9 +61,9 @@ class BaseDbModel:
         return elements, None
 
     @classmethod
-    async def get(cls: T, session: AsyncSession, _id: int) -> ClassVar[T]:
-        result = (await session.execute(select(cls).where(cls.id == _id))).first()[0]
-        return result
+    async def get_one(cls: T, session: AsyncSession, _id: int) -> Optional[T]:
+        result = (await session.execute(select(cls).where(cls.id == _id))).first()
+        return result[0] if result is not None else result
 
     @classmethod
     async def patch(cls: T, session: AsyncSession, _id: int, new_data: dict) -> Row:

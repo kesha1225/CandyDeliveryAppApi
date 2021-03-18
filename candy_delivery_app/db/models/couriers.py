@@ -1,16 +1,6 @@
 from typing import Optional, List, Tuple, Union
 
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Enum,
-    ARRAY,
-    FLOAT,
-    DECIMAL,
-    select,
-    update,
-)
+from sqlalchemy import Column, Integer, Enum, ARRAY, FLOAT, DECIMAL, Interval
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,11 +15,18 @@ class Courier(Base, BaseDbModel):
     id = Column(Integer, primary_key=True)
     courier_type = Column(Enum(CourierType))
     regions = Column(ARRAY(Integer))
-    working_hours = Column(ARRAY(String))
+    working_hours = Column(ARRAY(Interval))
     rating = Column(FLOAT, nullable=True)
     earnings = Column(DECIMAL, nullable=True)
 
     # TODO: отношения с ордерами (интимные)
+
+    def get_capacity(self):
+        return {
+            CourierType.FOOT: 10,
+            CourierType.BIKE: 15,
+            CourierType.CAR: 50,
+        }[self.courier_type]
 
     @classmethod
     async def create_couriers(
@@ -40,7 +37,7 @@ class Courier(Base, BaseDbModel):
         )
 
     @classmethod
-    async def get_courier(cls, session: AsyncSession, courier_id: int) -> "Courier":
+    async def get_courier(cls, session: AsyncSession, courier_id: int) -> Optional["Courier"]:
         return await cls.get_one(session=session, _id=courier_id)
 
     @classmethod
