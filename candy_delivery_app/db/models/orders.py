@@ -1,5 +1,5 @@
 from aiohttp import web
-from sqlalchemy import Float, Interval, select, JSON, String
+from sqlalchemy import Float, Interval, select, JSON, String, and_
 from typing import Optional, List, Tuple, Union
 
 from sqlalchemy import (
@@ -38,15 +38,16 @@ class Order(Base, BaseDbModel):
         if courier is None:
             raise web.HTTPBadRequest
 
+        print(courier.get_capacity())
+
         orders = await session.execute(
             select(Order).filter(
-                Order.delivery_hours_timedeltas[1]["first_time"].as_integer()
-                == courier.working_hours_timedeltas[0]["first_time"]
+                and_(
+                    Order.region.in_(courier.regions),
+                    Order.weight <= courier.get_capacity(),
+                )
             )
         )
-        # orders = await session.execute("""SELECT orders.id, orders.weight, orders.region, orders.delivery_hours
-        #                          FROM orders
-        #                          WHERE CAST(((orders.delivery_hours[1]) ->> 'first_time') AS INTEGER) > 0""")
         for i in orders.fetchall():
             i = i[0]
-            print(i.delivery_hours, 11, courier.working_hours)
+            print(i.__dict__)
