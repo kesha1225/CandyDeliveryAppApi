@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import List
+from typing import List, Dict
 
 from candy_delivery_app.models import HOURS_LIST
 
@@ -29,12 +29,12 @@ def hours_validate(value: HOURS_LIST):
     return value
 
 
-def get_timedeltas_from_string(value: HOURS_LIST) -> List[List[datetime.timedelta]]:
+def get_timedeltas_from_string(value: HOURS_LIST) -> List[Dict[str, int]]:
     new_values = []
     for raw_period in value:
         first_hour, first_minute, second_hour, second_minute = get_hours_and_minutes_from_str(raw_period)
 
         first_time = datetime.timedelta(hours=first_hour, minutes=first_minute)
         second_time = datetime.timedelta(hours=second_hour, minutes=second_minute)
-        new_values.append([first_time, second_time])
+        new_values.append({"first_time": int(first_time.total_seconds()), "second_time": int(second_time.total_seconds())})
     return new_values

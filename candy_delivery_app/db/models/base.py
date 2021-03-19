@@ -3,7 +3,6 @@ from typing import Union, List, Optional, Tuple, TypeVar, ClassVar
 from sqlalchemy import select, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from candy_delivery_app.models.utils import get_timedeltas_from_string
 
 T = TypeVar("T")
@@ -16,12 +15,13 @@ class BaseDbModel:
 
         # TODO: бяка
         for data in json_data["data"]:
-            if data.get("working_hours"):
-                data["working_hours"] = get_timedeltas_from_string(data.pop("working_hours"))
-            elif data.get("delivery_hours"):
-                data["delivery_hours"] = get_timedeltas_from_string(data.pop("delivery_hours"))
-
             data["id"] = data.pop(id_key)
+            if data.get("working_hours"):
+                dates = get_timedeltas_from_string(data["working_hours"])
+                data["working_hours_timedeltas"] = dates
+            elif data.get("delivery_hours"):
+                dates = get_timedeltas_from_string(data["delivery_hours"])
+                data["delivery_hours_timedeltas"] = dates
             couriers.append(cls(**data))
         return couriers
 
@@ -67,10 +67,25 @@ class BaseDbModel:
 
     @classmethod
     async def patch(cls: T, session: AsyncSession, _id: int, new_data: dict) -> Row:
-        new_data = {k: v for k, v in new_data.items() if v is not None}
+        update_data = {}
+
+        for key, value in new_data.items():
+            if value is None:
+                continue
+            if key == "working_hours":
+                update_data["working_hours_timedeltas"] = get_timedeltas_from_string(
+                    value
+                )
+            elif key == "delivery_hours":
+                update_data["delivery_hours_timedeltas"] = get_timedeltas_from_string(
+                    value
+                )
+
+            update_data[key] = value
+
         new_object = (
             await session.execute(
-                update(cls).where(cls.id == _id).values(new_data).returning(cls)
+                update(cls).where(cls.id == _id).values(update_data).returning(cls)
             )
         ).first()
         await session.commit()

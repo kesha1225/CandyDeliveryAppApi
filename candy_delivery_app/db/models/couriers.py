@@ -1,6 +1,16 @@
 from typing import Optional, List, Tuple, Union
 
-from sqlalchemy import Column, Integer, Enum, ARRAY, FLOAT, DECIMAL, Interval
+from sqlalchemy import (
+    Column,
+    Integer,
+    Enum,
+    ARRAY,
+    FLOAT,
+    DECIMAL,
+    Interval,
+    JSON,
+    String,
+)
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +25,8 @@ class Courier(Base, BaseDbModel):
     id = Column(Integer, primary_key=True)
     courier_type = Column(Enum(CourierType))
     regions = Column(ARRAY(Integer))
-    working_hours = Column(ARRAY(Interval))
+    working_hours = Column(ARRAY(String))
+    working_hours_timedeltas = Column(ARRAY(JSON))
     rating = Column(FLOAT, nullable=True)
     earnings = Column(DECIMAL, nullable=True)
 
@@ -37,7 +48,9 @@ class Courier(Base, BaseDbModel):
         )
 
     @classmethod
-    async def get_courier(cls, session: AsyncSession, courier_id: int) -> Optional["Courier"]:
+    async def get_courier(
+        cls, session: AsyncSession, courier_id: int
+    ) -> Optional["Courier"]:
         return await cls.get_one(session=session, _id=courier_id)
 
     @classmethod

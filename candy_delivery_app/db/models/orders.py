@@ -1,17 +1,14 @@
 from aiohttp import web
-from sqlalchemy import Float, Interval, select
+from sqlalchemy import Float, Interval, select, JSON, String
 from typing import Optional, List, Tuple, Union
 
 from sqlalchemy import (
     Column,
     Integer,
-    String,
     ARRAY,
 )
-from sqlalchemy.dialects.postgresql import array
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.operators import op
 
 from .base import BaseDbModel
 from .couriers import Courier
@@ -24,7 +21,8 @@ class Order(Base, BaseDbModel):
     id = Column(Integer, primary_key=True)
     weight = Column(Float)
     region = Column(Integer)
-    delivery_hours = Column(ARRAY(Interval))
+    delivery_hours = Column(ARRAY(String))
+    delivery_hours_timedeltas = Column(ARRAY(JSON))
 
     @classmethod
     async def create_orders(
@@ -40,12 +38,15 @@ class Order(Base, BaseDbModel):
         if courier is None:
             raise web.HTTPBadRequest
 
-        print(courier.working_hours)
-
-
-        # aaaaaaaaaaaaaaaaaaaaaaa
-
-        orders = await session.execute(select(Order).filter(Order.delivery_hours[0][0] > courier.working_hours[0][0]))
+        orders = await session.execute(
+            select(Order).filter(
+                Order.delivery_hours_timedeltas[1]["first_time"].as_integer()
+                == courier.working_hours_timedeltas[0]["first_time"]
+            )
+        )
+        # orders = await session.execute("""SELECT orders.id, orders.weight, orders.region, orders.delivery_hours
+        #                          FROM orders
+        #                          WHERE CAST(((orders.delivery_hours[1]) ->> 'first_time') AS INTEGER) > 0""")
         for i in orders.fetchall():
             i = i[0]
-            print(i.delivery_hours[0][0], courier.working_hours[0][0])
+            print(i.delivery_hours, 11, courier.working_hours)

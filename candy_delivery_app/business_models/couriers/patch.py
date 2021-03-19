@@ -13,6 +13,7 @@ from candy_delivery_app.models.couriers import (
     CourierUpdateResponseModel,
     CourierIdForQuery,
 )
+from candy_delivery_app.models.utils import get_timedeltas_from_string
 
 
 class CourierIdRequest(CourierIdForQuery):
@@ -75,6 +76,13 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
         )
         if new_courier is None:
             raise web.HTTPBadRequest
+
+        print({
+                    "courier_id": new_courier.id,
+                    "courier_type": new_courier.courier_type,
+                    "regions": new_courier.regions,
+                    "working_hours": new_courier.working_hours,
+                })
 
         return ApiResponse(
             status_code=status_code,
