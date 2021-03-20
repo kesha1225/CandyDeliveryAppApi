@@ -14,7 +14,7 @@ from candy_delivery_app.models.orders import (
     OrdersPostRequestModel,
     OrdersIds,
     OrdersBadRequestModel,
-    OrdersAssignPostRequestModel,
+    OrdersAssignPostRequestModel, OrdersAssignPostResponseModel, OrdersAssignPostEmptyResponseModel,
 )
 
 
@@ -51,10 +51,6 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
 
     @classmethod
     def success_handler(cls, values: Dict[str, int]) -> Dict[str, int]:
-        # return {
-        #     "orders": [{"id": element.dict()["courier_id"]} for element in values],
-        #     "assign_time": datetime.datetime.now().isoformat(),
-        # }
         return values
 
     @classmethod
@@ -65,6 +61,19 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
 
         status_code, reason, data = await cls.get_model_from_json_data(json_data)
 
-        await Order.get_orders_for_courier(session=session, courier_id=data["courier_id"])
+        assign_time, orders = await Order.get_orders_for_courier(session=session, courier_id=data["courier_id"])
+        response_data = {"orders": []}
+
+        for order in orders:
+            response_data["orders"].append({"id": order.id})
+
+        if orders:
+            response_data["assign_time"] = assign_time
+            model = OrdersAssignPostResponseModel(**response_data)
+        else:
+            model = OrdersAssignPostEmptyResponseModel(**response_data)
+
+        return ApiResponse(status_code=200, reason="OK", response_data=model)
+
 
 

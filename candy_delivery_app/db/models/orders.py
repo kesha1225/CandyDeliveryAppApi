@@ -1,5 +1,7 @@
+import datetime
+
 from aiohttp import web
-from sqlalchemy import Float, select, JSON, String, and_, ForeignKey
+from sqlalchemy import Float, select, JSON, String, and_, ForeignKey, DateTime, update
 from typing import Optional, List, Tuple, Union
 
 from sqlalchemy import (
@@ -9,6 +11,7 @@ from sqlalchemy import (
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import relationship
 
 from .base import BaseDbModel
 from .couriers import Courier
@@ -23,6 +26,7 @@ class Order(Base, BaseDbModel):
     region = Column(Integer)
     delivery_hours = Column(ARRAY(String))
     delivery_hours_timedeltas = Column(ARRAY(JSON))
+    assign_time = Column(String, nullable=True)
 
     courier_id = Column(Integer, ForeignKey('couriers.id'))
 
@@ -35,7 +39,7 @@ class Order(Base, BaseDbModel):
     @classmethod
     async def get_orders_for_courier(
         cls, session: AsyncSession, courier_id: int
-    ) -> List["Order"]:
+    ) -> Tuple[str, List["Order"]]:
         courier = await Courier.get_courier(courier_id=courier_id, session=session)
         if courier is None:
             raise web.HTTPBadRequest
@@ -52,6 +56,8 @@ class Order(Base, BaseDbModel):
         good_orders = []
 
         raw_orders = orders.fetchall()
+
+        assign_time = datetime.datetime.now().isoformat()
 
         for raw_order in raw_orders:
             order = raw_order[0]
@@ -73,13 +79,13 @@ class Order(Base, BaseDbModel):
                         courier_first_time <= order_second_time <= courier_second_time
                     ):
                         if order not in good_orders:
+                            order.courier_id = courier.id
+                            order.assign_time = assign_time
                             good_orders.append(order)
 
-        for order in good_orders:
-            order.courier_id = courier_id
+        if not good_orders:
+            return assign_time, []
 
-        # await session.execute(update(Courier).where(Courier.id == courier.id).values({"regions": [9]}))
-        # await session.commit()
-
+        session.add_all(good_orders)
         await session.commit()
-        return good_orders
+        return assign_time, good_orders

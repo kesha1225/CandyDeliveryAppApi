@@ -1,4 +1,5 @@
-from typing import List, Union
+import datetime
+from typing import List, Union, Optional
 
 from pydantic import Field, conint, confloat, validator
 
@@ -34,6 +35,15 @@ class OrdersBadRequestModel(CoreModel):
 
 class OrdersAssignPostRequestModel(CoreModel):
     courier_id: COURIER_ID
+
+
+class OrdersAssignPostEmptyResponseModel(CoreModel):
+    orders: List[OrderId]
+
+
+class OrdersAssignPostResponseModel(OrdersAssignPostEmptyResponseModel):
+    orders: List[OrderId]
+    assign_time: Optional[datetime.datetime]
 
 
 class OrdersCompletePostRequestModel(CoreModel):

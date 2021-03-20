@@ -6,6 +6,7 @@ from ..models.couriers import (
     CouriersIds,
     CourierUpdateResponseModel,
 )
+from ..models.orders import OrdersAssignPostResponseModel
 
 
 class ApiResponse:
@@ -18,6 +19,7 @@ class ApiResponse:
             CouriersBadRequestModel,
             dict,
             CourierUpdateResponseModel,
+            OrdersAssignPostResponseModel
         ],
     ):
         self.status_code = status_code
