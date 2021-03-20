@@ -21,6 +21,7 @@ async def create_orders(request: Request, session: AsyncSession):
 @get_session
 async def assign_orders(request: Request, session: AsyncSession):
     response = await OrdersAssignPostRequest.assign_orders(session=session, request=request)
+    return web.json_response({})
     return web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)
 
 

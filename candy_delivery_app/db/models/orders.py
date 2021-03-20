@@ -38,8 +38,6 @@ class Order(Base, BaseDbModel):
         if courier is None:
             raise web.HTTPBadRequest
 
-        print(courier.get_capacity())
-
         orders = await session.execute(
             select(Order).filter(
                 and_(
@@ -48,6 +46,27 @@ class Order(Base, BaseDbModel):
                 )
             )
         )
-        for i in orders.fetchall():
-            i = i[0]
-            print(i.__dict__)
+        print("courier", courier.working_hours, courier.working_hours_timedeltas)
+
+        good_orders = []
+
+        raw_orders = orders.fetchall()
+        print(len(raw_orders))
+
+        for raw_order in raw_orders:
+            order = raw_order[0]
+
+            for order_timedelta in order.delivery_hours_timedeltas:
+                for courier_timedelta in courier.working_hours_timedeltas:
+                    order_first_time, order_second_time = order_timedelta["first_time"], order_timedelta["second_time"]
+                    courier_first_time, courier_second_time = courier_timedelta["first_time"], courier_timedelta["second_time"]
+
+                    if (
+                            (courier_first_time <= order_first_time <= courier_second_time)
+                            or (courier_first_time <= order_second_time <= courier_second_time)
+                    ):
+                        if order not in good_orders:
+                            good_orders.append(order)
+
+        for i in good_orders:
+            print(i.delivery_hours)
