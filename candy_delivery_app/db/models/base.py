@@ -11,8 +11,7 @@ T = TypeVar("T")
 class BaseDbModel:
     @classmethod
     def get_items_list_from_json(cls: T, json_data: dict, id_key: str) -> List[T]:
-        couriers = []
-
+        items = []
         # TODO: бяка
         for data in json_data["data"]:
             data["id"] = data.pop(id_key)
@@ -22,8 +21,8 @@ class BaseDbModel:
             elif data.get("delivery_hours"):
                 dates = get_timedeltas_from_string(data["delivery_hours"])
                 data["delivery_hours_timedeltas"] = dates
-            couriers.append(cls(**data))
-        return couriers
+            items.append(cls(**data))
+        return items
 
     @classmethod
     async def find_duplicates(

@@ -77,13 +77,6 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
         if new_courier is None:
             raise web.HTTPBadRequest
 
-        print({
-                    "courier_id": new_courier.id,
-                    "courier_type": new_courier.courier_type,
-                    "regions": new_courier.regions,
-                    "working_hours": new_courier.working_hours,
-                })
-
         return ApiResponse(
             status_code=status_code,
             reason=reason,

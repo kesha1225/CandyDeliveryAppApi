@@ -13,6 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import relationship, backref
 
 from .base import BaseDbModel
 from ..db import Base
@@ -27,6 +28,9 @@ class Courier(Base, BaseDbModel):
     regions = Column(ARRAY(Integer))
     working_hours = Column(ARRAY(String))
     working_hours_timedeltas = Column(ARRAY(JSON))
+
+    orders = relationship("Order", backref="courier")
+
     rating = Column(FLOAT, nullable=True)
     earnings = Column(DECIMAL, nullable=True)
 

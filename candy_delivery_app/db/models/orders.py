@@ -1,5 +1,5 @@
 from aiohttp import web
-from sqlalchemy import Float, Interval, select, JSON, String, and_
+from sqlalchemy import Float, select, JSON, String, and_, ForeignKey
 from typing import Optional, List, Tuple, Union
 
 from sqlalchemy import (
@@ -24,6 +24,8 @@ class Order(Base, BaseDbModel):
     delivery_hours = Column(ARRAY(String))
     delivery_hours_timedeltas = Column(ARRAY(JSON))
 
+    courier_id = Column(Integer, ForeignKey('couriers.id'))
+
     @classmethod
     async def create_orders(
         cls, session: AsyncSession, json_data: dict
@@ -33,7 +35,7 @@ class Order(Base, BaseDbModel):
     @classmethod
     async def get_orders_for_courier(
         cls, session: AsyncSession, courier_id: int
-    ) -> Tuple[Optional[List[Union["Order", int]]], Optional[List[int]]]:
+    ) -> List["Order"]:
         courier = await Courier.get_courier(courier_id=courier_id, session=session)
         if courier is None:
             raise web.HTTPBadRequest
@@ -46,27 +48,38 @@ class Order(Base, BaseDbModel):
                 )
             )
         )
-        print("courier", courier.working_hours, courier.working_hours_timedeltas)
 
         good_orders = []
 
         raw_orders = orders.fetchall()
-        print(len(raw_orders))
 
         for raw_order in raw_orders:
             order = raw_order[0]
 
             for order_timedelta in order.delivery_hours_timedeltas:
                 for courier_timedelta in courier.working_hours_timedeltas:
-                    order_first_time, order_second_time = order_timedelta["first_time"], order_timedelta["second_time"]
-                    courier_first_time, courier_second_time = courier_timedelta["first_time"], courier_timedelta["second_time"]
+                    order_first_time, order_second_time = (
+                        order_timedelta["first_time"],
+                        order_timedelta["second_time"],
+                    )
+                    courier_first_time, courier_second_time = (
+                        courier_timedelta["first_time"],
+                        courier_timedelta["second_time"],
+                    )
 
                     if (
-                            (courier_first_time <= order_first_time <= courier_second_time)
-                            or (courier_first_time <= order_second_time <= courier_second_time)
+                        courier_first_time <= order_first_time <= courier_second_time
+                    ) or (
+                        courier_first_time <= order_second_time <= courier_second_time
                     ):
                         if order not in good_orders:
                             good_orders.append(order)
 
-        for i in good_orders:
-            print(i.delivery_hours)
+        for order in good_orders:
+            order.courier_id = courier_id
+
+        # await session.execute(update(Courier).where(Courier.id == courier.id).values({"regions": [9]}))
+        # await session.commit()
+
+        await session.commit()
+        return good_orders
