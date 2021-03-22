@@ -9,11 +9,11 @@ from sqlalchemy import (
     DECIMAL,
     Interval,
     JSON,
-    String,
+    String, select,
 )
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, selectinload
 
 from .base import BaseDbModel
 from ..db import Base
@@ -50,6 +50,11 @@ class Courier(Base, BaseDbModel):
         return await cls.create(
             session=session, json_data=json_data, id_key="courier_id"
         )
+
+    @classmethod
+    async def get_one(cls, session: AsyncSession, _id: int) -> Optional["Courier"]:
+        result = (await session.execute(select(cls).where(cls.id == _id).options(selectinload(cls.orders)))).first()
+        return result[0] if result is not None else result
 
     @classmethod
     async def get_courier(

@@ -49,6 +49,7 @@ class OrdersAssignPostResponseModel(OrdersAssignPostEmptyResponseModel):
 class OrdersCompletePostRequestModel(CoreModel):
     courier_id: COURIER_ID
     order_id: ORDER_ID
+    complete_time: datetime.datetime
 
 
 class OrdersCompletePostResponseModel(CoreModel):

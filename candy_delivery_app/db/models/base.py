@@ -63,8 +63,7 @@ class BaseDbModel:
 
     @classmethod
     async def get_one(cls: T, session: AsyncSession, _id: int) -> Optional[T]:
-        result = (await session.execute(select(cls).where(cls.id == _id).options(selectinload(cls.orders)))).first()
-        return result[0] if result is not None else result
+        ...
 
     @classmethod
     async def patch(cls: T, session: AsyncSession, _id: int, new_data: dict) -> Row:

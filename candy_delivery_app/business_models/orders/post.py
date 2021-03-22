@@ -15,6 +15,7 @@ from candy_delivery_app.models.orders import (
     OrdersIds,
     OrdersBadRequestModel,
     OrdersAssignPostRequestModel, OrdersAssignPostResponseModel, OrdersAssignPostEmptyResponseModel,
+    OrdersCompletePostRequestModel, OrdersCompletePostResponseModel,
 )
 
 
@@ -74,6 +75,47 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
             model = OrdersAssignPostEmptyResponseModel(**response_data)
 
         return ApiResponse(status_code=200, reason="OK", response_data=model)
+
+
+class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
+    @classmethod
+    async def get_model_from_json_data(
+        cls, json_data: dict
+    ) -> Tuple[STATUS_CODE, REASON, dict]:
+        values, fields_set, error = validate_model(cls, json_data)
+        if error is not None:
+            raise web.HTTPBadRequest
+
+        return (
+            201,
+            "Created",
+            cls.success_handler(values),
+        )
+
+    @classmethod
+    def success_handler(cls, values: Dict[str, int]) -> Dict[str, int]:
+        return values
+
+    @classmethod
+    async def complete_orders(
+        cls, session: AsyncSession, request: Request
+    ) -> ApiResponse:
+        json_data = await request.json()
+
+        status_code, reason, data = await cls.get_model_from_json_data(json_data)
+
+        order_id, courier_id, complete_time = data["order_id"], data["courier_id"], data["complete_time"]
+
+        order = await Order.get_one(session=session, _id=order_id)
+        if order is None or order.courier_id is None or order.courier_id != courier_id:
+            raise web.HTTPBadRequest
+
+        # TODO: че делать с complete_time
+
+        await Order.complete_order(session=session, order_id=order_id)
+        return ApiResponse(status_code=200, reason="OK", response_data=OrdersCompletePostResponseModel(**{"order_id": order_id}))
+
+
 
 
 

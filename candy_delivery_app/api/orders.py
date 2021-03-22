@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..business_models.orders.post import OrdersPostRequest, OrdersAssignPostRequest
+from ..business_models.orders.post import OrdersPostRequest, OrdersAssignPostRequest, OrdersCompletePostRequest
 from ..db.db import get_session
 from ..db.models.couriers import Courier
 from ..db.models.orders import Order
@@ -28,14 +28,15 @@ async def assign_orders(request: Request, session: AsyncSession):
 
     a = web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)
     # r = await session.execute(select(Courier).options(selectinload(Courier.orders)))
-    #
     # for i in r.fetchall():
     #     for j in i[0].orders:
-    #         print(j.weight, j.delivery_hours)
+    #         import datetime
+    #         print(j.weight, datetime.datetime.fromisoformat(j.assign_time))
     return a
 
 
 @orders_router.post("/orders/complete")
 @get_session
 async def complete_orders(request: Request, session: AsyncSession):
-    pass
+    response = await OrdersCompletePostRequest.complete_orders(session=session, request=request)
+    return web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)

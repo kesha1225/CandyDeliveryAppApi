@@ -1,7 +1,7 @@
 import datetime
 
 from aiohttp import web
-from sqlalchemy import Float, select, JSON, String, and_, ForeignKey, DateTime, update, Boolean, not_
+from sqlalchemy import Float, select, JSON, String, and_, ForeignKey, DateTime, update, Boolean, not_, delete
 from typing import Optional, List, Tuple, Union
 
 from sqlalchemy import (
@@ -38,18 +38,21 @@ class Order(Base, BaseDbModel):
         return await cls.create(session=session, json_data=json_data, id_key="order_id")
 
     @classmethod
+    async def get_one(cls, session: AsyncSession, _id: int) -> Optional["Order"]:
+        result = (await session.execute(select(cls).where(cls.id == _id))).first()
+        return result[0] if result is not None else result
+
+    @classmethod
     async def get_orders_for_courier(
         cls, session: AsyncSession, courier_id: int
     ) -> Tuple[str, List["Order"]]:
 
         # todo проверка на completed
+        # выдача новых если например один старый остался и место освободилось
 
         courier = await Courier.get_courier(courier_id=courier_id, session=session)
         if courier is None:
             raise web.HTTPBadRequest
-
-        if courier.orders:
-            return courier.orders[0].assign_time, courier.orders
 
         orders = await session.execute(
             select(Order).filter(
@@ -65,7 +68,7 @@ class Order(Base, BaseDbModel):
 
         raw_orders = orders.fetchall()
 
-        assign_time = datetime.datetime.now().isoformat()
+        assign_time = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
 
         for raw_order in raw_orders:
             order = raw_order[0]
@@ -110,3 +113,11 @@ class Order(Base, BaseDbModel):
         session.add_all(good_orders)
         await session.commit()
         return assign_time, good_orders
+
+    @classmethod
+    async def complete_order(
+            cls, session: AsyncSession, order_id: int
+    ) -> None:
+        await session.execute(delete(Order).where(Order.id == order_id))
+        await session.commit()
+
