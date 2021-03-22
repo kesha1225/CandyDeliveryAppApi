@@ -3,6 +3,8 @@ from typing import Union, List, Optional, Tuple, TypeVar, ClassVar
 from sqlalchemy import select, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
 from candy_delivery_app.models.utils import get_timedeltas_from_string
 
 T = TypeVar("T")
@@ -61,7 +63,7 @@ class BaseDbModel:
 
     @classmethod
     async def get_one(cls: T, session: AsyncSession, _id: int) -> Optional[T]:
-        result = (await session.execute(select(cls).where(cls.id == _id))).first()
+        result = (await session.execute(select(cls).where(cls.id == _id).options(selectinload(cls.orders)))).first()
         return result[0] if result is not None else result
 
     @classmethod

@@ -1,7 +1,7 @@
 import datetime
 
 from aiohttp import web
-from sqlalchemy import Float, select, JSON, String, and_, ForeignKey, DateTime, update
+from sqlalchemy import Float, select, JSON, String, and_, ForeignKey, DateTime, update, Boolean, not_
 from typing import Optional, List, Tuple, Union
 
 from sqlalchemy import (
@@ -27,8 +27,9 @@ class Order(Base, BaseDbModel):
     delivery_hours = Column(ARRAY(String))
     delivery_hours_timedeltas = Column(ARRAY(JSON))
     assign_time = Column(String, nullable=True)
+    completed = Column(Boolean, default=False)
 
-    courier_id = Column(Integer, ForeignKey('couriers.id'))
+    courier_id = Column(Integer, ForeignKey("couriers.id"))
 
     @classmethod
     async def create_orders(
@@ -40,20 +41,27 @@ class Order(Base, BaseDbModel):
     async def get_orders_for_courier(
         cls, session: AsyncSession, courier_id: int
     ) -> Tuple[str, List["Order"]]:
+
+        # todo проверка на completed
+
         courier = await Courier.get_courier(courier_id=courier_id, session=session)
         if courier is None:
             raise web.HTTPBadRequest
+
+        if courier.orders:
+            return courier.orders[0].assign_time, courier.orders
 
         orders = await session.execute(
             select(Order).filter(
                 and_(
                     Order.region.in_(courier.regions),
-                    Order.weight <= courier.get_capacity(),
+                    not_(Order.completed)
                 )
             )
         )
 
         good_orders = []
+        orders_sum_weight = 0
 
         raw_orders = orders.fetchall()
 
@@ -73,12 +81,25 @@ class Order(Base, BaseDbModel):
                         courier_timedelta["second_time"],
                     )
 
+                    # if (
+                    #     courier_first_time <= order_first_time < courier_second_time
+                    #     or courier_first_time < order_second_time <= courier_second_time
+                    # ):
                     if (
-                        courier_first_time <= order_first_time <= courier_second_time
+                        order_first_time < courier_first_time < order_second_time
+                        or order_first_time < courier_second_time < order_second_time
                     ) or (
-                        courier_first_time <= order_second_time <= courier_second_time
+                        courier_first_time < order_first_time < courier_second_time
+                        or courier_first_time < order_second_time < courier_second_time
                     ):
-                        if order not in good_orders:
+                        if (
+                            order not in good_orders
+                            and orders_sum_weight + order.weight
+                            <= courier.get_capacity()
+                        ):
+                            if order.courier is not None:  # заказ выдан кому то другому
+                                continue
+                            orders_sum_weight = round(orders_sum_weight + order.weight, 2)
                             order.courier_id = courier.id
                             order.assign_time = assign_time
                             good_orders.append(order)

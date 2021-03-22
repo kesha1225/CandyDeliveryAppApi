@@ -27,10 +27,15 @@ async def assign_orders(request: Request, session: AsyncSession):
     response = await OrdersAssignPostRequest.assign_orders(session=session, request=request)
 
     a = web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)
-    r = await session.execute(select(Courier).options(selectinload(Courier.orders)))
-
-    for i in r.fetchall():
-        print(i[0].orders)
+    # r = await session.execute(select(Courier).options(selectinload(Courier.orders)))
+    #
+    # for i in r.fetchall():
+    #     for j in i[0].orders:
+    #         print(j.weight, j.delivery_hours)
     return a
 
 
+@orders_router.post("/orders/complete")
+@get_session
+async def complete_orders(request: Request, session: AsyncSession):
+    pass
