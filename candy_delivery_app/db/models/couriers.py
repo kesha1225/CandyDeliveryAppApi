@@ -9,7 +9,8 @@ from sqlalchemy import (
     DECIMAL,
     Interval,
     JSON,
-    String, select,
+    String,
+    select,
 )
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,8 +35,6 @@ class Courier(Base, BaseDbModel):
     rating = Column(FLOAT, nullable=True)
     earnings = Column(DECIMAL, nullable=True)
 
-    # TODO: отношения с ордерами (интимные)
-
     def get_capacity(self):
         return {
             CourierType.FOOT: 10,
@@ -53,7 +52,11 @@ class Courier(Base, BaseDbModel):
 
     @classmethod
     async def get_one(cls, session: AsyncSession, _id: int) -> Optional["Courier"]:
-        result = (await session.execute(select(cls).where(cls.id == _id).options(selectinload(cls.orders)))).first()
+        result = (
+            await session.execute(
+                select(cls).where(cls.id == _id).options(selectinload(cls.orders))
+            )
+        ).first()
         return result[0] if result is not None else result
 
     @classmethod
@@ -66,5 +69,4 @@ class Courier(Base, BaseDbModel):
     async def patch_courier(
         cls, session: AsyncSession, courier_id: int, new_data: dict
     ) -> Row:
-        # TODO: пришело "regions": [1,1]
         return await cls.patch(session=session, _id=courier_id, new_data=new_data)

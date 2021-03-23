@@ -14,13 +14,15 @@ couriers_router = web.RouteTableDef()
 @couriers_router.post("/couriers")
 @get_session
 async def create_couriers(request: Request, session: AsyncSession):
-    # TODO: working_hours validate
-    # TODO: а если ниче не пришло)
 
     response = await CouriersPostRequest.create_couriers(
         session=session, request=request
     )
-    return web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)
+    return web.json_response(
+        data=response.response_data.json(),
+        status=response.status_code,
+        reason=response.reason,
+    )
 
 
 @couriers_router.patch("/couriers/{courier_id}")
@@ -31,4 +33,8 @@ async def patch_courier(request: Request, session: AsyncSession):
     response = await CouriersUpdateRequest.patch_courier(
         session=session, request=request
     )
-    return web.json_response(data=response.response_data.json(), status=response.status_code, reason=response.reason)
+    return web.json_response(
+        data=response.response_data.json(),
+        status=response.status_code,
+        reason=response.reason,
+    )

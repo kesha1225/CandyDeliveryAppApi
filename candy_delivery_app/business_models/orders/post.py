@@ -14,8 +14,11 @@ from candy_delivery_app.models.orders import (
     OrdersPostRequestModel,
     OrdersIds,
     OrdersBadRequestModel,
-    OrdersAssignPostRequestModel, OrdersAssignPostResponseModel, OrdersAssignPostEmptyResponseModel,
-    OrdersCompletePostRequestModel, OrdersCompletePostResponseModel,
+    OrdersAssignPostRequestModel,
+    OrdersAssignPostResponseModel,
+    OrdersAssignPostEmptyResponseModel,
+    OrdersCompletePostRequestModel,
+    OrdersCompletePostResponseModel,
 )
 
 
@@ -62,7 +65,9 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
 
         status_code, reason, data = await cls.get_model_from_json_data(json_data)
 
-        assign_time, orders = await Order.get_orders_for_courier(session=session, courier_id=data["courier_id"])
+        assign_time, orders = await Order.get_orders_for_courier(
+            session=session, courier_id=data["courier_id"]
+        )
         response_data = {"orders": []}
 
         for order in orders:
@@ -104,18 +109,25 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
 
         status_code, reason, data = await cls.get_model_from_json_data(json_data)
 
-        order_id, courier_id, complete_time = data["order_id"], data["courier_id"], data["complete_time"]
+        order_id, courier_id, complete_time = (
+            data["order_id"],
+            data["courier_id"],
+            data["complete_time"],
+        )
 
         order = await Order.get_one(session=session, _id=order_id)
-        if order is None or order.courier_id is None or order.courier_id != courier_id:
+        if (
+            order is None
+            or (order.courier_id is None and not order.completed)
+            or (not order.completed and order.courier_id != courier_id)
+        ):
             raise web.HTTPBadRequest
 
         # TODO: че делать с complete_time
 
         await Order.complete_order(session=session, order_id=order_id)
-        return ApiResponse(status_code=200, reason="OK", response_data=OrdersCompletePostResponseModel(**{"order_id": order_id}))
-
-
-
-
-
+        return ApiResponse(
+            status_code=200,
+            reason="OK",
+            response_data=OrdersCompletePostResponseModel(**{"order_id": order_id}),
+        )

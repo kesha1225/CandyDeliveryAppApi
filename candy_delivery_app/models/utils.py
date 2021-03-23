@@ -19,7 +19,12 @@ def get_hours_and_minutes_from_str(raw_date: str):
 
 def hours_validate(value: HOURS_LIST):
     for raw_period in value:
-        first_hour, first_minute, second_hour, second_minute = get_hours_and_minutes_from_str(raw_period)
+        (
+            first_hour,
+            first_minute,
+            second_hour,
+            second_minute,
+        ) = get_hours_and_minutes_from_str(raw_period)
 
         if any(filter(lambda hour: hour > 23, [first_hour, second_hour])) or any(
             filter(lambda minute: minute > 59, [first_minute, second_minute])
@@ -32,9 +37,19 @@ def hours_validate(value: HOURS_LIST):
 def get_timedeltas_from_string(value: HOURS_LIST) -> List[Dict[str, int]]:
     new_values = []
     for raw_period in value:
-        first_hour, first_minute, second_hour, second_minute = get_hours_and_minutes_from_str(raw_period)
+        (
+            first_hour,
+            first_minute,
+            second_hour,
+            second_minute,
+        ) = get_hours_and_minutes_from_str(raw_period)
 
         first_time = datetime.timedelta(hours=first_hour, minutes=first_minute)
         second_time = datetime.timedelta(hours=second_hour, minutes=second_minute)
-        new_values.append({"first_time": int(first_time.total_seconds()), "second_time": int(second_time.total_seconds())})
+        new_values.append(
+            {
+                "first_time": int(first_time.total_seconds()),
+                "second_time": int(second_time.total_seconds()),
+            }
+        )
     return new_values

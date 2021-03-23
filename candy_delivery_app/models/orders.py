@@ -14,7 +14,9 @@ class OrderItem(CoreModel):
     region: conint(strict=True, gt=0)
     delivery_hours: HOURS_LIST
 
-    _normalize_delivery_hours = validator('delivery_hours', allow_reuse=True)(hours_validate)
+    _normalize_delivery_hours = validator("delivery_hours", allow_reuse=True)(
+        hours_validate
+    )
 
 
 class OrderId(CoreModel):

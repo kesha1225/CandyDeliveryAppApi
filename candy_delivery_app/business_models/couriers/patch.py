@@ -46,9 +46,7 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
     ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
         json_data = await request.json()
 
-        _, _, data = await CourierIdRequest.get_model_from_json_data(
-            request=request
-        )
+        _, _, data = await CourierIdRequest.get_model_from_json_data(request=request)
         #  400 быть не может так как там рейс
 
         values, fields_set, error = validate_model(cls, json_data)

@@ -20,7 +20,9 @@ class CourierItem(CoreModel):
     regions: REGIONS
     working_hours: HOURS_LIST
 
-    _normalize_working_hours = validator('working_hours', allow_reuse=True)(hours_validate)
+    _normalize_working_hours = validator("working_hours", allow_reuse=True)(
+        hours_validate
+    )
 
 
 class CourierId(CoreModel):
@@ -51,7 +53,9 @@ class CourierGetResponseModel(CoreModel):
     rating: Optional[confloat(strict=True, ge=0.0)]
     earnings: condecimal(ge=Decimal(0))
 
-    _normalize_working_hours = validator('working_hours', allow_reuse=True)(hours_validate)
+    _normalize_working_hours = validator("working_hours", allow_reuse=True)(
+        hours_validate
+    )
 
 
 class CourierUpdateRequestModel(CoreModel):
@@ -59,7 +63,9 @@ class CourierUpdateRequestModel(CoreModel):
     regions: Optional[REGIONS] = None
     working_hours: Optional[HOURS_LIST] = None
 
-    _normalize_working_hours = validator('working_hours', allow_reuse=True)(hours_validate)
+    _normalize_working_hours = validator("working_hours", allow_reuse=True)(
+        hours_validate
+    )
 
 
 class CourierUpdateResponseModel(CoreModel):
@@ -68,4 +74,6 @@ class CourierUpdateResponseModel(CoreModel):
     regions: REGIONS
     working_hours: HOURS_LIST
 
-    _normalize_working_hours = validator('working_hours', allow_reuse=True)(hours_validate)
+    _normalize_working_hours = validator("working_hours", allow_reuse=True)(
+        hours_validate
+    )

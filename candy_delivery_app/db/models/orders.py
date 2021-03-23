@@ -1,7 +1,17 @@
 import datetime
 
 from aiohttp import web
-from sqlalchemy import Float, select, JSON, String, and_, ForeignKey, DateTime, update, Boolean, not_, delete
+from sqlalchemy import (
+    Float,
+    select,
+    JSON,
+    String,
+    and_,
+    ForeignKey,
+    update,
+    Boolean,
+    not_,
+)
 from typing import Optional, List, Tuple, Union
 
 from sqlalchemy import (
@@ -11,7 +21,6 @@ from sqlalchemy import (
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship
 
 from .base import BaseDbModel
 from .couriers import Courier
@@ -30,6 +39,7 @@ class Order(Base, BaseDbModel):
     completed = Column(Boolean, default=False)
 
     courier_id = Column(Integer, ForeignKey("couriers.id"))
+    # completed_time = Column(Integer, nullable=True)
 
     @classmethod
     async def create_orders(
@@ -47,7 +57,6 @@ class Order(Base, BaseDbModel):
         cls, session: AsyncSession, courier_id: int
     ) -> Tuple[str, List["Order"]]:
 
-        # todo проверка на completed
         # выдача новых если например один старый остался и место освободилось
 
         courier = await Courier.get_courier(courier_id=courier_id, session=session)
@@ -56,15 +65,17 @@ class Order(Base, BaseDbModel):
 
         orders = await session.execute(
             select(Order).filter(
-                and_(
-                    Order.region.in_(courier.regions),
-                    not_(Order.completed)
-                )
+                and_(Order.region.in_(courier.regions), not_(Order.completed))
             )
         )
 
         good_orders = []
         orders_sum_weight = 0
+
+        if courier.orders:
+            for order in courier.orders:
+                good_orders.append(order)
+                orders_sum_weight = round(orders_sum_weight + order.weight, 2)
 
         raw_orders = orders.fetchall()
 
@@ -95,14 +106,19 @@ class Order(Base, BaseDbModel):
                         courier_first_time < order_first_time < courier_second_time
                         or courier_first_time < order_second_time < courier_second_time
                     ):
+                        print(orders_sum_weight, order.weight)
                         if (
                             order not in good_orders
                             and orders_sum_weight + order.weight
                             <= courier.get_capacity()
                         ):
-                            if order.courier is not None:  # заказ выдан кому то другому
+                            if (
+                                order.courier_id is not None
+                            ):  # заказ выдан кому то другому
                                 continue
-                            orders_sum_weight = round(orders_sum_weight + order.weight, 2)
+                            orders_sum_weight = round(
+                                orders_sum_weight + order.weight, 2
+                            )
                             order.courier_id = courier.id
                             order.assign_time = assign_time
                             good_orders.append(order)
@@ -115,9 +131,10 @@ class Order(Base, BaseDbModel):
         return assign_time, good_orders
 
     @classmethod
-    async def complete_order(
-            cls, session: AsyncSession, order_id: int
-    ) -> None:
-        await session.execute(delete(Order).where(Order.id == order_id))
+    async def complete_order(cls, session: AsyncSession, order_id: int) -> None:
+        await session.execute(
+            update(Order)
+            .where(Order.id == order_id)
+            .values({"completed": True, "courier_id": None})
+        )
         await session.commit()
-
