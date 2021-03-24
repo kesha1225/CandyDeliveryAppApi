@@ -145,10 +145,19 @@ class Order(Base, BaseDbModel):
         if order.courier.delivery_data is None:
             order.courier.delivery_data = {"regions": {}}
 
-        if order.courier.delivery_data["regions"].get(order.region) is None:
-            order.courier.delivery_data["regions"][order.region] = [complete_time.timestamp()]
+        complete_time_seconds = complete_time.timestamp()
+        if order.courier.last_delivery_time is None:
+            delivery_time = complete_time_seconds - datetime.datetime.fromisoformat(order.assign_time).timestamp()
+            order.courier.last_delivery_time = complete_time_seconds
         else:
-            order.courier.delivery_data["regions"][order.region].append(complete_time.timestamp())
+            delivery_time = complete_time_seconds - order.courier.last_delivery_time
+
+        #1616434714.838184
+
+        if order.courier.delivery_data["regions"].get(order.region) is None:
+            order.courier.delivery_data["regions"][order.region] = [delivery_time]
+        else:
+            order.courier.delivery_data["regions"][order.region].append(delivery_time)
         await session.execute(
             update(Order)
             .where(Order.id == order_id)

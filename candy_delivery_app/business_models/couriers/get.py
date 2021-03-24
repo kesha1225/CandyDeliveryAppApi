@@ -11,7 +11,8 @@ from candy_delivery_app.db.models.couriers import Courier
 from candy_delivery_app.models._types import STATUS_CODE, REASON, MODEL_DATA
 from candy_delivery_app.models.couriers import (
     CourierUpdateResponseModel,
-     CourierGetResponseModel,
+    CourierGetResponseModel,
+    CourierGetResponseModelNoRating,
 )
 
 
@@ -20,19 +21,13 @@ class CouriersGetRequest(CourierGetResponseModel):
     async def get_model_from_json_data(
         cls, request: Request
     ) -> Tuple[STATUS_CODE, REASON, MODEL_DATA]:
-        json_data = await request.json()
 
         _, _, data = await CourierIdRequest.get_model_from_json_data(request=request)
-
-        values, fields_set, error = validate_model(cls, json_data)
-
-        if error is not None:
-            raise web.HTTPBadRequest
 
         return (
             200,
             "OK",
-            cls.success_handler(values),
+            cls.success_handler(data),
         )
 
     @staticmethod
@@ -40,27 +35,28 @@ class CouriersGetRequest(CourierGetResponseModel):
         return values
 
     @classmethod
-    async def get_courier(
-        cls, session: AsyncSession, request: Request
-    ) -> ApiResponse:
+    async def get_courier(cls, session: AsyncSession, request: Request) -> ApiResponse:
         status_code, reason, data = await cls.get_model_from_json_data(request=request)
-        courier = await Courier.get_all_data_courier(
-            session=session, courier_id=data["courier_id"]
-        )
+        courier = await Courier.get_all_data_courier(session=session, courier_id=data)
         if courier is None:
             raise web.HTTPBadRequest
+
+        response = {
+            "courier_id": courier.id,
+            "courier_type": courier.courier_type,
+            "regions": courier.regions,
+            "working_hours": courier.working_hours,
+        }
+
+        if courier.delivery_data:
+            response["rating"] = courier.rating
+
+        response["earnings"] = courier.earnings
 
         return ApiResponse(
             status_code=status_code,
             reason=reason,
-            response_data=CourierGetResponseModel.parse_obj(
-                {
-                    "courier_id": courier.id,
-                    "courier_type": courier.courier_type,
-                    "regions": courier.regions,
-                    "working_hours": courier.working_hours,
-                    "rating": courier.rating,
-                    "earnings": courier.earnings,
-                }
-            ),
+            response_data=CourierGetResponseModel.parse_obj(response)
+            if response.get("rating")
+            else CourierGetResponseModelNoRating.parse_obj(response),
         )

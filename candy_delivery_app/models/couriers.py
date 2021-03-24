@@ -50,7 +50,19 @@ class CourierGetResponseModel(CoreModel):
     courier_type: CourierType
     regions: REGIONS
     working_hours: HOURS_LIST
-    rating: Optional[confloat(strict=True, ge=0.0)]
+    rating: confloat(strict=True, ge=0.0)
+    earnings: condecimal(ge=Decimal(0))
+
+    _normalize_working_hours = validator("working_hours", allow_reuse=True)(
+        hours_validate
+    )
+
+
+class CourierGetResponseModelNoRating(CoreModel):
+    courier_id: COURIER_ID
+    courier_type: CourierType
+    regions: REGIONS
+    working_hours: HOURS_LIST
     earnings: condecimal(ge=Decimal(0))
 
     _normalize_working_hours = validator("working_hours", allow_reuse=True)(

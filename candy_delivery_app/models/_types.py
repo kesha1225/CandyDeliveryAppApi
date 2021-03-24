@@ -9,4 +9,4 @@ ORDER_ID = conint(strict=True, gt=0)
 COURIER_ID = conint(strict=True, gt=0)
 STATUS_CODE = int
 REASON = str
-MODEL_DATA = Union[dict, Type[BaseModel]]
+MODEL_DATA = Union[dict, Type[BaseModel], int]

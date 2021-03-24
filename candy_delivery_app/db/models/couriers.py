@@ -35,6 +35,7 @@ class Courier(Base, BaseDbModel):
     rating = Column(FLOAT, nullable=True)
     earnings = Column(DECIMAL, default=0.0)
 
+    last_delivery_time = Column(FLOAT, nullable=True)
     delivery_data = Column(JSON, nullable=True)
 
     def get_capacity(self):
@@ -59,14 +60,14 @@ class Courier(Base, BaseDbModel):
             session=session, json_data=json_data, id_key="courier_id"
         )
 
-    # @classmethod
-    # async def get_one(cls, session: AsyncSession, _id: int) -> Optional["Courier"]:
-    #     result = (
-    #         await session.execute(
-    #             select(cls).where(cls.id == _id).options(selectinload(cls.orders))
-    #         )
-    #     ).first()
-    #     return result[0] if result is not None else result
+    @classmethod
+    async def get_one(cls, session: AsyncSession, _id: int) -> Optional["Courier"]:
+        result = (
+            await session.execute(
+                select(cls).where(cls.id == _id).options(selectinload(cls.orders))
+            )
+        ).first()
+        return result[0] if result is not None else result
 
     @classmethod
     async def get_courier(
@@ -78,18 +79,26 @@ class Courier(Base, BaseDbModel):
     async def get_all_data_courier(
             cls, session: AsyncSession, courier_id: int
     ) -> Optional["Courier"]:
-        """
-        (60*60 - min(t, 60*60))/(60*60) * 5
-        где t - минимальное из средних времен доставки по районам (в секундах), t = min(td[1], td[2], ..., td[n])
-        td[i]- среднее время доставки заказов по району i (в секундах).
-        Время доставки одного заказа определяется как разница между временем окончания этого заказа и временем окончания
-         предыдущего заказа (или временем назначения заказов, если вычисляется время для первого заказа).
-        Если курьер не завершил ни одного развоза, то рассчитывать и возвращать рейтинг не нужно.
-        Заработок рассчитывается как сумма оплаты за каждый завершенный развоз:
-        sum = ∑(500 * C),
-        C — коэффициент, зависящий от типа курьера (пеший — 2, велокурьер — 5, авто — 9) на момент формирования развоза.
-        """
-        pass
+        base_courier = await cls.get_courier(session=session, courier_id=courier_id)
+        if base_courier is None:
+            return base_courier
+
+        average_values = []
+
+        if base_courier.delivery_data is None:
+            return base_courier
+
+        #  {"regions": {"12": [1616434714.838184]}}
+
+        for region, times in base_courier.delivery_data["regions"].items():
+            average_values.append(sum(times) / len(times))
+
+        t = min(average_values)
+
+        rating = (60*60 - min(t, 60*60))/(60*60) * 5
+        base_courier.rating = round(rating, 2)
+        await session.commit()
+        return base_courier
 
     @classmethod
     async def patch_courier(
