@@ -6,6 +6,7 @@ from ..business_models.couriers import (
     CouriersPostRequest,
     CouriersUpdateRequest,
 )
+from ..business_models.couriers.get import CouriersGetRequest
 from ..db.db import get_session
 
 couriers_router = web.RouteTableDef()
@@ -31,6 +32,20 @@ async def patch_courier(request: Request, session: AsyncSession):
     # TODO: а че если такого айди в базе нет)
 
     response = await CouriersUpdateRequest.patch_courier(
+        session=session, request=request
+    )
+    return web.json_response(
+        data=response.response_data.json(),
+        status=response.status_code,
+        reason=response.reason,
+    )
+
+
+@couriers_router.get("/couriers/{courier_id}")
+@get_session
+async def patch_courier(request: Request, session: AsyncSession):
+
+    response = await CouriersGetRequest.get_courier(
         session=session, request=request
     )
     return web.json_response(

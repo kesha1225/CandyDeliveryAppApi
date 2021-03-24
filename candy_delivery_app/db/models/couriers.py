@@ -33,13 +33,22 @@ class Courier(Base, BaseDbModel):
     orders = relationship("Order", backref="courier")
 
     rating = Column(FLOAT, nullable=True)
-    earnings = Column(DECIMAL, nullable=True)
+    earnings = Column(DECIMAL, default=0.0)
+
+    delivery_data = Column(JSON, nullable=True)
 
     def get_capacity(self):
         return {
             CourierType.FOOT: 10,
             CourierType.BIKE: 15,
             CourierType.CAR: 50,
+        }[self.courier_type]
+
+    def get_coefficient(self):
+        return {
+            CourierType.FOOT: 2,
+            CourierType.BIKE: 5,
+            CourierType.CAR: 9,
         }[self.courier_type]
 
     @classmethod
@@ -50,20 +59,37 @@ class Courier(Base, BaseDbModel):
             session=session, json_data=json_data, id_key="courier_id"
         )
 
-    @classmethod
-    async def get_one(cls, session: AsyncSession, _id: int) -> Optional["Courier"]:
-        result = (
-            await session.execute(
-                select(cls).where(cls.id == _id).options(selectinload(cls.orders))
-            )
-        ).first()
-        return result[0] if result is not None else result
+    # @classmethod
+    # async def get_one(cls, session: AsyncSession, _id: int) -> Optional["Courier"]:
+    #     result = (
+    #         await session.execute(
+    #             select(cls).where(cls.id == _id).options(selectinload(cls.orders))
+    #         )
+    #     ).first()
+    #     return result[0] if result is not None else result
 
     @classmethod
     async def get_courier(
         cls, session: AsyncSession, courier_id: int
     ) -> Optional["Courier"]:
         return await cls.get_one(session=session, _id=courier_id)
+
+    @classmethod
+    async def get_all_data_courier(
+            cls, session: AsyncSession, courier_id: int
+    ) -> Optional["Courier"]:
+        """
+        (60*60 - min(t, 60*60))/(60*60) * 5
+        где t - минимальное из средних времен доставки по районам (в секундах), t = min(td[1], td[2], ..., td[n])
+        td[i]- среднее время доставки заказов по району i (в секундах).
+        Время доставки одного заказа определяется как разница между временем окончания этого заказа и временем окончания
+         предыдущего заказа (или временем назначения заказов, если вычисляется время для первого заказа).
+        Если курьер не завершил ни одного развоза, то рассчитывать и возвращать рейтинг не нужно.
+        Заработок рассчитывается как сумма оплаты за каждый завершенный развоз:
+        sum = ∑(500 * C),
+        C — коэффициент, зависящий от типа курьера (пеший — 2, велокурьер — 5, авто — 9) на момент формирования развоза.
+        """
+        pass
 
     @classmethod
     async def patch_courier(

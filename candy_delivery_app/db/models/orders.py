@@ -17,10 +17,11 @@ from typing import Optional, List, Tuple, Union
 from sqlalchemy import (
     Column,
     Integer,
-    ARRAY,
+    ARRAY, DECIMAL
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from .base import BaseDbModel
 from .couriers import Courier
@@ -39,6 +40,7 @@ class Order(Base, BaseDbModel):
     completed = Column(Boolean, default=False)
 
     courier_id = Column(Integer, ForeignKey("couriers.id"))
+    cost = Column(DECIMAL)
     # completed_time = Column(Integer, nullable=True)
 
     @classmethod
@@ -106,7 +108,6 @@ class Order(Base, BaseDbModel):
                         courier_first_time < order_first_time < courier_second_time
                         or courier_first_time < order_second_time < courier_second_time
                     ):
-                        print(orders_sum_weight, order.weight)
                         if (
                             order not in good_orders
                             and orders_sum_weight + order.weight
@@ -119,6 +120,7 @@ class Order(Base, BaseDbModel):
                             orders_sum_weight = round(
                                 orders_sum_weight + order.weight, 2
                             )
+                            order.cost = 500 * courier.get_coefficient()
                             order.courier_id = courier.id
                             order.assign_time = assign_time
                             good_orders.append(order)
@@ -131,7 +133,22 @@ class Order(Base, BaseDbModel):
         return assign_time, good_orders
 
     @classmethod
-    async def complete_order(cls, session: AsyncSession, order_id: int) -> None:
+    async def complete_order(cls, session: AsyncSession, order_id: int, complete_time: datetime.datetime) -> None:
+        order = (await session.execute(
+            select(Order)
+            .where(Order.id == order_id).options(selectinload(Order.courier))
+        )).fetchall()[0][0]
+        if order.courier is None:
+            return
+        order.courier.earnings += order.cost
+
+        if order.courier.delivery_data is None:
+            order.courier.delivery_data = {"regions": {}}
+
+        if order.courier.delivery_data["regions"].get(order.region) is None:
+            order.courier.delivery_data["regions"][order.region] = [complete_time.timestamp()]
+        else:
+            order.courier.delivery_data["regions"][order.region].append(complete_time.timestamp())
         await session.execute(
             update(Order)
             .where(Order.id == order_id)

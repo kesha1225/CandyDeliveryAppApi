@@ -123,9 +123,7 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
         ):
             raise web.HTTPBadRequest
 
-        # TODO: че делать с complete_time
-
-        await Order.complete_order(session=session, order_id=order_id)
+        await Order.complete_order(session=session, order_id=order_id, complete_time=complete_time)
         return ApiResponse(
             status_code=200,
             reason="OK",

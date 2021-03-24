@@ -4,7 +4,7 @@ from ..models._types import STATUS_CODE, REASON
 from ..models.couriers import (
     CouriersBadRequestModel,
     CouriersIds,
-    CourierUpdateResponseModel,
+    CourierUpdateResponseModel, CourierGetResponseModel,
 )
 from ..models.orders import OrdersAssignPostResponseModel, OrdersCompletePostResponseModel
 
@@ -20,7 +20,8 @@ class ApiResponse:
             dict,
             CourierUpdateResponseModel,
             OrdersAssignPostResponseModel,
-            OrdersCompletePostResponseModel
+            OrdersCompletePostResponseModel,
+            CourierGetResponseModel
         ],
     ):
         self.status_code = status_code

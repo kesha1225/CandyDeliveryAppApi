@@ -13,7 +13,6 @@ from candy_delivery_app.models.couriers import (
     CourierUpdateResponseModel,
     CourierIdForQuery,
 )
-from candy_delivery_app.models.utils import get_timedeltas_from_string
 
 
 class CourierIdRequest(CourierIdForQuery):
