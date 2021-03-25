@@ -1,7 +1,7 @@
 import datetime
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Dict, Tuple
 
-from pydantic import Field, conint, confloat, validator
+from pydantic import Field, conint, confloat, validator, BaseModel
 
 from ._types import COURIER_ID, ORDER_ID, HOURS_LIST
 from .settings import CoreModel
@@ -31,8 +31,13 @@ class OrdersPostRequestModel(CoreModel):
     data: List[OrderItem] = Field(..., min_items=1)
 
 
-class OrdersBadRequestModel(CoreModel):
-    validation_error: OrdersIds
+class OrdersIdsAP(BaseModel):
+    orders: List[OrderId] = Field(..., min_items=1)
+    errors_data: List[Dict[str, Union[Tuple, str]]]
+
+
+class OrdersBadRequestModel(BaseModel):
+    validation_error: OrdersIdsAP
 
 
 class OrdersAssignPostRequestModel(CoreModel):

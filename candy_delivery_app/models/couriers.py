@@ -1,8 +1,8 @@
 from enum import Enum
 from decimal import Decimal
-from typing import List, Optional
+from typing import List, Optional, Dict, Union, Tuple
 
-from pydantic import Field, validator, confloat, condecimal, conint
+from pydantic import Field, validator, confloat, condecimal, conint, BaseModel
 from ._types import COURIER_ID, REGIONS, HOURS_LIST
 from .settings import CoreModel
 from .utils import hours_validate
@@ -41,8 +41,13 @@ class CouriersPostRequestModel(CoreModel):
     data: List[CourierItem] = Field(..., min_items=1)
 
 
-class CouriersBadRequestModel(CoreModel):
-    validation_error: CouriersIds
+class CouriersIdsAP(BaseModel):
+    couriers: List[CourierId] = Field(..., min_items=1)
+    errors_data: List[Dict[str, Union[Tuple, str]]]
+
+
+class CouriersBadRequestModel(BaseModel):
+    validation_error: CouriersIdsAP
 
 
 class CourierGetResponseModel(CoreModel):

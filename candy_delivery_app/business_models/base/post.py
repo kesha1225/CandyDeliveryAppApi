@@ -40,8 +40,17 @@ class BaseBusinessPostModel:
     ) -> dict:
         bad_data_ids = []
 
+        errors_data = []
+
         if json_data["data"]:  # нам могут отправить пустой список
             for error in validation_error.errors():
+                errors_data.append(
+                    {
+                        "location": error["loc"],
+                        "msg": error["msg"],
+                        "type": error["type"],
+                    }
+                )
                 element_number = error["loc"][1]
                 element_id = json_data["data"][element_number][id_key]
 
@@ -50,7 +59,8 @@ class BaseBusinessPostModel:
 
         response_bad_data = {
             "validation_error": {
-                items_key: [{"id": element_id} for element_id in bad_data_ids]
+                items_key: [{"id": element_id} for element_id in bad_data_ids],
+                "errors_data": errors_data,
             }
         }
 
