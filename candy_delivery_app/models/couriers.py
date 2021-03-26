@@ -1,8 +1,7 @@
 from enum import Enum
-from decimal import Decimal
 from typing import List, Optional, Dict, Union, Tuple
 
-from pydantic import Field, validator, confloat, condecimal, conint, BaseModel
+from pydantic import Field, validator, confloat, conint, BaseModel
 from ._types import COURIER_ID, REGIONS, HOURS_LIST
 from .settings import CoreModel
 from .utils import hours_validate
@@ -56,7 +55,7 @@ class CourierGetResponseModel(CoreModel):
     regions: REGIONS
     working_hours: HOURS_LIST
     rating: confloat(strict=True, ge=0.0)
-    earnings: condecimal(ge=Decimal(0))
+    earnings: conint(ge=0)
 
     _normalize_working_hours = validator("working_hours", allow_reuse=True)(
         hours_validate
@@ -68,7 +67,7 @@ class CourierGetResponseModelNoRating(CoreModel):
     courier_type: CourierType
     regions: REGIONS
     working_hours: HOURS_LIST
-    earnings: condecimal(ge=Decimal(0))
+    earnings: conint(ge=0)
 
     _normalize_working_hours = validator("working_hours", allow_reuse=True)(
         hours_validate

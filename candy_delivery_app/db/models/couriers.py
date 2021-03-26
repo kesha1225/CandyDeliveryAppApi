@@ -33,7 +33,7 @@ class Courier(Base, BaseDbModel):
     orders = relationship("Order", backref="courier")
 
     rating = Column(FLOAT, nullable=True)
-    earnings = Column(DECIMAL, default=0.0)
+    earnings = Column(Integer, default=0)
 
     last_delivery_time = Column(FLOAT, nullable=True)
     delivery_data = Column(JSON, nullable=True)

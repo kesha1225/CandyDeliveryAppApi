@@ -17,7 +17,7 @@ from typing import Optional, List, Tuple, Union
 from sqlalchemy import (
     Column,
     Integer,
-    ARRAY, DECIMAL
+    ARRAY
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,7 +40,7 @@ class Order(Base, BaseDbModel):
     completed = Column(Boolean, default=False)
 
     courier_id = Column(Integer, ForeignKey("couriers.id"))
-    cost = Column(DECIMAL)
+    cost = Column(Integer)
     # completed_time = Column(Integer, nullable=True)
 
     @classmethod
