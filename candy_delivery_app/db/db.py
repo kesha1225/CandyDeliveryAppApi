@@ -2,12 +2,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
+from candy_delivery_app.db.context_uri import DB_URI
+
 Base = declarative_base()
 
-# TODO: .env
-engine = create_async_engine(
-    "postgresql+asyncpg://postgres:samedov@localhost:5432/postgres", echo=False
-)
+engine = create_async_engine(DB_URI.get(), echo=False)
 
 session = sessionmaker(engine, class_=AsyncSession)
 

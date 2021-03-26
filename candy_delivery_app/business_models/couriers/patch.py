@@ -72,7 +72,7 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
             session=session, courier_id=data["courier_id"], new_data=data["new_data"]
         )
         if new_courier is None:
-            raise web.HTTPBadRequest
+            raise web.HTTPNotFound
 
         return ApiResponse(
             status_code=status_code,

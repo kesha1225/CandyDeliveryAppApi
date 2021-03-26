@@ -39,7 +39,7 @@ class CouriersGetRequest(CourierGetResponseModel):
         status_code, reason, data = await cls.get_model_from_json_data(request=request)
         courier = await Courier.get_all_data_courier(session=session, courier_id=data)
         if courier is None:
-            raise web.HTTPBadRequest
+            raise web.HTTPNotFound
 
         response = {
             "courier_id": courier.id,
