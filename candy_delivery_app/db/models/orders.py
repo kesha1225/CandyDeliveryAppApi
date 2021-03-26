@@ -1,6 +1,8 @@
 import datetime
+from typing import Optional, List, Tuple, Union
 
 from aiohttp import web
+from sqlalchemy import Column, Integer, ARRAY
 from sqlalchemy import (
     Float,
     select,
@@ -12,14 +14,6 @@ from sqlalchemy import (
     Boolean,
     not_,
 )
-from typing import Optional, List, Tuple, Union
-
-from sqlalchemy import (
-    Column,
-    Integer,
-    ARRAY
-)
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -41,6 +35,7 @@ class Order(Base, BaseDbModel):
 
     courier_id = Column(Integer, ForeignKey("couriers.id"))
     cost = Column(Integer)
+
     # completed_time = Column(Integer, nullable=True)
 
     @classmethod
@@ -133,11 +128,16 @@ class Order(Base, BaseDbModel):
         return assign_time, good_orders
 
     @classmethod
-    async def complete_order(cls, session: AsyncSession, order_id: int, complete_time: datetime.datetime) -> None:
-        order = (await session.execute(
-            select(Order)
-            .where(Order.id == order_id).options(selectinload(Order.courier))
-        )).fetchall()[0][0]
+    async def complete_order(
+        cls, session: AsyncSession, order_id: int, complete_time: datetime.datetime
+    ) -> None:
+        order = (
+            await session.execute(
+                select(Order)
+                .where(Order.id == order_id)
+                .options(selectinload(Order.courier))
+            )
+        ).fetchall()[0][0]
         if order.courier is None:
             return
         order.courier.earnings += order.cost
@@ -147,20 +147,31 @@ class Order(Base, BaseDbModel):
 
         complete_time_seconds = complete_time.timestamp()
         if order.courier.last_delivery_time is None:
-            delivery_time = complete_time_seconds - datetime.datetime.fromisoformat(order.assign_time).timestamp()
+            delivery_time = (
+                complete_time_seconds
+                - datetime.datetime.fromisoformat(order.assign_time).timestamp()
+            )
             order.courier.last_delivery_time = complete_time_seconds
         else:
             delivery_time = complete_time_seconds - order.courier.last_delivery_time
 
-        #1616434714.838184
+        # 1616434714.838184
+        region_key = str(order.region)
 
-        if order.courier.delivery_data["regions"].get(order.region) is None:
-            order.courier.delivery_data["regions"][order.region] = [delivery_time]
+        if order.courier.delivery_data["regions"].get(region_key) is None:
+            order.courier.delivery_data["regions"][region_key] = [delivery_time]
         else:
-            order.courier.delivery_data["regions"][order.region].append(delivery_time)
+            order.courier.delivery_data["regions"][region_key].append(delivery_time)
+
+        # работай пж
         await session.execute(
             update(Order)
             .where(Order.id == order_id)
             .values({"completed": True, "courier_id": None})
+        )
+        await session.execute(
+            update(Courier)
+            .where(Courier.id == order.courier.id)
+            .values({"delivery_data": order.courier.delivery_data})
         )
         await session.commit()
