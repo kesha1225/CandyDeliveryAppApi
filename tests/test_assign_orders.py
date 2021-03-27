@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import os
 
@@ -94,6 +95,12 @@ async def test_couriers_assign(cli, session_):
                     "courier_id": 3,
                     "courier_type": "car",
                     "regions": [12, 22, 24, 33],
+                    "working_hours": [],
+                },
+                {
+                    "courier_id": 4,
+                    "courier_type": "foot",
+                    "regions": [],
                     "working_hours": ["09:00-18:00"],
                 },
             ]
@@ -139,3 +146,14 @@ async def test_couriers_assign(cli, session_):
     assert json_data["orders"] == [{"id": 2}]
     assert json_data.get("assign_time") is not None
     assert isinstance(json_data["assign_time"], str)
+    datetime.datetime.fromisoformat(json_data["assign_time"])
+
+    r = await cli.post("/orders/assign", json={"courier_id": 3})
+    json_data = json.loads(await r.json())
+    assert json_data["orders"] == []
+    assert json_data.get("assign_time") is None
+
+    r = await cli.post("/orders/assign", json={"courier_id": 4})
+    json_data = json.loads(await r.json())
+    assert json_data["orders"] == []
+    assert json_data.get("assign_time") is None

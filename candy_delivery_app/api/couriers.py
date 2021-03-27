@@ -29,8 +29,6 @@ async def create_couriers(request: Request, session: AsyncSession):
 @couriers_router.patch("/couriers/{courier_id}")
 @get_session
 async def patch_courier(request: Request, session: AsyncSession):
-    # TODO: а че если такого айди в базе нет)
-
     response = await CouriersUpdateRequest.patch_courier(
         session=session, request=request
     )
@@ -43,7 +41,7 @@ async def patch_courier(request: Request, session: AsyncSession):
 
 @couriers_router.get("/couriers/{courier_id}")
 @get_session
-async def patch_courier(request: Request, session: AsyncSession):
+async def get_courier(request: Request, session: AsyncSession):
 
     response = await CouriersGetRequest.get_courier(
         session=session, request=request
