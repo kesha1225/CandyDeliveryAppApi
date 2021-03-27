@@ -120,6 +120,8 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
             order is None
             or (order.courier_id is None and not order.completed)
             or (not order.completed and order.courier_id != courier_id)
+            or (order.completed and order.old_courier_id != courier_id)
+            or (order.completed and order.completed_time != complete_time.isoformat())
         ):
             raise web.HTTPBadRequest
 

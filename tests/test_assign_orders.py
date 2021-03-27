@@ -109,6 +109,12 @@ async def test_couriers_assign(cli, session_):
                     "regions": [9, 22, 12],
                     "working_hours": ["00:00-23:59"],
                 },
+                {
+                    "courier_id": 6,
+                    "courier_type": "bike",
+                    "regions": [9],
+                    "working_hours": ["09:00-18:00"],
+                },
             ]
         },
         session=session_,
@@ -154,6 +160,11 @@ async def test_couriers_assign(cli, session_):
     assert isinstance(json_data["assign_time"], str)
     datetime.datetime.fromisoformat(json_data["assign_time"])
 
+    r = await cli.post("/orders/assign", json={"courier_id": 6})
+    json_data = json.loads(await r.json())
+    assert json_data["orders"] == []
+    assert json_data.get("assign_time") is None
+
     r = await cli.post("/orders/assign", json={"courier_id": 3})
     json_data = json.loads(await r.json())
     assert json_data["orders"] == []
@@ -167,3 +178,7 @@ async def test_couriers_assign(cli, session_):
     r = await cli.post("/orders/assign", json={"courier_id": 5})
     json_data = json.loads(await r.json())
     assert len(json_data["orders"]) == 3
+
+    r = await cli.post("/orders/assign", json={"courier_id": 1337})
+    assert r.status == 400
+    assert r.reason == "Bad Request"

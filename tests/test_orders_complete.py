@@ -164,3 +164,56 @@ async def test_couriers_complete(cli, session_):
     assert current_courier.orders == []
 
     assert json_data["order_id"] == order_id
+
+    resp = await cli.post(
+        "/orders/complete",
+        json={
+            "courier_id": 1337,
+            "order_id": order_id,
+            "complete_time": now.isoformat(),
+        },
+    )
+    assert resp.status == 400
+    assert resp.reason == "Bad Request"
+
+    resp = await cli.post(
+        "/orders/complete",
+        json={
+            "courier_id": 2,
+            "order_id": order_id,
+            "complete_time": now.isoformat(),
+        },
+    )
+    assert resp.status == 200
+    json_data = json.loads(await resp.json())
+    assert json_data["order_id"] == order_id
+
+    resp = await cli.post(
+        "/orders/complete",
+        json={
+            "courier_id": 2,
+            "order_id": order_id,
+            "complete_time": "fds",
+        },
+    )
+    assert resp.status == 400
+
+    resp = await cli.post(
+        "/orders/complete",
+        json={
+            "courier_id": 2,
+            "order_id": order_id,
+            "complete_time": (now + datetime.timedelta(minutes=423)).isoformat(),
+        },
+    )
+    assert resp.status == 400
+
+    resp = await cli.post(
+        "/orders/complete",
+        json={
+            "courier_id": 2,
+            "order_id": 31312,
+            "complete_time": now.isoformat(),
+        },
+    )
+    assert resp.status == 400

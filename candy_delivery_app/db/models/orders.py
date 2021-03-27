@@ -35,9 +35,10 @@ class Order(Base, BaseDbModel):
     completed = Column(Boolean, default=False)
 
     courier_id = Column(Integer, ForeignKey("couriers.id"))
+    old_courier_id = Column(Integer, nullable=True)
     cost = Column(Integer)
 
-    # completed_time = Column(Integer, nullable=True)
+    completed_time = Column(String, nullable=True)
 
     @classmethod
     async def create_orders(
@@ -162,7 +163,8 @@ class Order(Base, BaseDbModel):
         await session.execute(
             update(Order)
             .where(Order.id == order_id)
-            .values({"completed": True, "courier_id": None})
+            .values({"completed": True, "courier_id": None, "old_courier_id": order.courier.id,
+                     "completed_time": complete_time.isoformat()})
         )
         await session.execute(
             update(Courier)

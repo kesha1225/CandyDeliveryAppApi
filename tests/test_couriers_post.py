@@ -223,5 +223,7 @@ async def test_couriers_post_bad(cli, session_):
         },
     )
     json_response = json.loads(await response.json())
+    assert response.status == 400
+    assert response.reason == "Bad Request"
     assert json_response["validation_error"]["couriers"] == [{'id': 1}]
     assert json_response["validation_error"]["errors_data"][0]["msg"] == "id duplicates"
