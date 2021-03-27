@@ -48,8 +48,8 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
             raise web.HTTPBadRequest
 
         return (
-            201,
-            "Created",
+            200,
+            "OK",
             cls.success_handler(values),
         )
 
@@ -92,8 +92,8 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
             raise web.HTTPBadRequest
 
         return (
-            201,
-            "Created",
+            200,
+            "OK",
             cls.success_handler(values),
         )
 

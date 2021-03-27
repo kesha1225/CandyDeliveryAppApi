@@ -36,7 +36,7 @@ class CouriersGetRequest(CourierGetResponseModel):
 
     @classmethod
     async def get_courier(cls, session: AsyncSession, request: Request) -> ApiResponse:
-        #TODO: 400 тут нет
+        # TODO: 400 тут нет
         status_code, reason, data = await cls.get_model_from_json_data(request=request)
         courier = await Courier.get_all_data_courier(session=session, courier_id=data)
         if courier is None:
@@ -58,6 +58,4 @@ class CouriersGetRequest(CourierGetResponseModel):
             status_code=status_code,
             reason=reason,
             response_data=CourierGetResponseModel.parse_obj(response)
-            if response.get("rating")
-            else CourierGetResponseModelNoRating.parse_obj(response),
         )

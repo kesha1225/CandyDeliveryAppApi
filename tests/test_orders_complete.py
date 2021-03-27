@@ -1,8 +1,9 @@
 import asyncio
+import datetime
+import json
 import os
 
 import dotenv
-from aiohttp.test_utils import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -43,7 +44,7 @@ async def session_():
     await async_session.close()
 
 
-async def test_couriers_patch(cli, session_):
+async def test_couriers_complete(cli, session_):
     await update_base()
     await Courier.create_couriers(
         json_data={
@@ -63,94 +64,101 @@ async def test_couriers_patch(cli, session_):
                 {
                     "courier_id": 3,
                     "courier_type": "car",
-                    "regions": [9, 12, 22, 24, 33],
+                    "regions": [12, 22, 24, 33],
                     "working_hours": ["09:00-18:00"],
                 },
             ]
         },
         session=session_,
     )
-    couriers = (await session_.execute("SELECT * FROM couriers")).fetchall()
-
-    assert couriers[2].regions == [9, 12, 22, 24, 33]
-    assert couriers[2].working_hours == ["09:00-18:00"]
-    assert couriers[2].working_hours_timedeltas == [
-        {"first_time": 32400, "second_time": 64800}
-    ]
-
-    await Order.create_orders(
-        session=session_,
-        json_data={
+    await cli.post(
+        "/orders",
+        json={
             "data": [
                 {
                     "order_id": 1,
                     "weight": 3,
-                    "region": 9,
+                    "region": 12,
                     "delivery_hours": ["09:00-18:00"],
                 },
                 {
                     "order_id": 2,
-                    "weight": 1,
+                    "weight": 10,
                     "region": 9,
                     "delivery_hours": ["09:00-18:00"],
                 },
                 {
                     "order_id": 3,
-                    "weight": 16,
+                    "weight": 0.01,
                     "region": 22,
-                    "delivery_hours": ["16:00-21:30"],
+                    "delivery_hours": ["09:00-12:00", "16:00-21:30"],
                 },
                 {
                     "order_id": 4,
-                    "weight": 3,
+                    "weight": 5,
                     "region": 12,
-                    "delivery_hours": ["17:00-21:30"],
+                    "delivery_hours": ["09:00-12:00", "16:00-21:30", "22:00-23:59"],
                 },
             ]
         },
     )
 
-    resp = await cli.post("/orders/assign", json={"courier_id": 3})
+    courier_id = 2
 
-    await Courier.patch_courier(
-        session=session_,
-        courier_id=3,
-        new_data={
-            "regions": [12, 9, 1, 22],
-            "working_hours": ["18:00-21:00"],
+    resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
+
+    json_data = json.loads(await resp.json())
+    assign_time = json_data["assign_time"]
+    order_id = json_data["orders"][0]["id"]
+
+    current_order: Order = (
+        await session_.execute(select(Order).where(Order.id == order_id))
+    ).first()[0]
+
+    assert current_order.completed is False
+
+    assert current_order.courier_id == courier_id
+
+    current_courier: Courier = (
+        await session_.execute(
+            select(Courier)
+            .where(Courier.id == courier_id)
+            .options(selectinload(Courier.orders))
+        )
+    ).first()[0]
+
+    assert current_order.courier_id == courier_id
+    assert current_courier.orders == [current_order]
+
+    now = datetime.datetime.now()
+    resp = await cli.post(
+        "/orders/complete",
+        json={
+            "courier_id": courier_id,
+            "order_id": order_id,
+            "complete_time": now.isoformat(),
         },
     )
+    await session_.commit()
+    json_data = json.loads(await resp.json())
 
-    courier = (
+    current_order: Order = (
+        await session_.execute(select(Order).where(Order.id == order_id))
+    ).first()[0]
+
+    current_courier: Courier = (
         await session_.execute(
-            select(Courier).where(Courier.id == 3).options(selectinload(Courier.orders))
+            select(Courier)
+            .where(Courier.id == courier_id)
+            .options(selectinload(Courier.orders))
         )
     ).first()[0]
-    assert len(courier.orders) == 2
-    assert courier.orders[0].id == 3
-    assert courier.regions == [12, 9, 1, 22]
-    assert courier.working_hours == ["18:00-21:00"]
-    assert courier.working_hours_timedeltas == [
-        {"first_time": 64800, "second_time": 75600}
-    ]
 
-    await Courier.patch_courier(
-        session=session_,
-        courier_id=3,
-        new_data={"courier_type": "bike"},
-    )
+    delivery_time = now.timestamp() - datetime.datetime.fromisoformat(assign_time).timestamp()
+    assert current_courier.delivery_data["regions"]["9"][0] == delivery_time
+    assert current_courier.last_delivery_time == now.timestamp()
+    assert current_order.courier_id is None
+    assert current_order.completed is True
+    assert current_courier.orders == []
 
-    courier = (
-        await session_.execute(
-            select(Courier).where(Courier.id == 3).options(selectinload(Courier.orders))
-        )
-    ).first()[0]
-    assert len(courier.orders) == 1
-    assert courier.orders[0].id == 4
-
-    orders = (await session_.execute("SELECT * FROM orders")).fetchall()
-    for order in orders:
-        if order.id == 4:
-            assert order.courier_id == 3
-        else:
-            assert order.courier_id is None
+    assert json_data["order_id"] == order_id

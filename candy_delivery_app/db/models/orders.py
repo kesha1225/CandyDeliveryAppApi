@@ -19,6 +19,7 @@ from sqlalchemy.orm import selectinload
 
 from .base import BaseDbModel
 from .couriers import Courier
+from .utils import check_courier_can_delivery_by_time
 from ..db import Base
 
 
@@ -60,10 +61,19 @@ class Order(Base, BaseDbModel):
         if courier is None:
             raise web.HTTPBadRequest
 
+        if not courier.regions or not courier.working_hours:
+            return "", []
+
         orders = await session.execute(
-            select(Order).filter(
-                and_(Order.region.in_(courier.regions), not_(Order.completed))
+            select(Order)
+            .filter(
+                and_(
+                    Order.region.in_(courier.regions),
+                    not_(Order.completed),
+                    Order.weight <= courier.get_capacity(),
+                )
             )
+            .order_by(Order.weight)
         )
 
         good_orders = []
@@ -83,42 +93,24 @@ class Order(Base, BaseDbModel):
 
             for order_timedelta in order.delivery_hours_timedeltas:
                 for courier_timedelta in courier.working_hours_timedeltas:
-                    order_first_time, order_second_time = (
-                        order_timedelta["first_time"],
-                        order_timedelta["second_time"],
-                    )
-                    courier_first_time, courier_second_time = (
-                        courier_timedelta["first_time"],
-                        courier_timedelta["second_time"],
-                    )
-
-                    # if (
-                    #     courier_first_time <= order_first_time < courier_second_time
-                    #     or courier_first_time < order_second_time <= courier_second_time
-                    # ):
                     if (
-                        order_first_time < courier_first_time < order_second_time
-                        or order_first_time < courier_second_time < order_second_time
-                    ) or (
-                        courier_first_time < order_first_time < courier_second_time
-                        or courier_first_time < order_second_time < courier_second_time
-                    ):
-                        if (
-                            order not in good_orders
-                            and orders_sum_weight + order.weight
+                        check_courier_can_delivery_by_time(
+                            order_timedelta=order_timedelta,
+                            courier_timedelta=courier_timedelta,
+                        )
+                        and (order not in good_orders)
+                        and (
+                            round(orders_sum_weight + order.weight, 2)
                             <= courier.get_capacity()
-                        ):
-                            if (
-                                order.courier_id is not None
-                            ):  # заказ выдан кому то другому
-                                continue
-                            orders_sum_weight = round(
-                                orders_sum_weight + order.weight, 2
-                            )
-                            order.cost = 500 * courier.get_coefficient()
-                            order.courier_id = courier.id
-                            order.assign_time = assign_time
-                            good_orders.append(order)
+                        )
+                    ):
+                        if order.courier_id is not None:  # заказ выдан кому то другому
+                            continue
+                        orders_sum_weight = round(orders_sum_weight + order.weight, 2)
+                        order.cost = 500 * courier.get_coefficient()
+                        order.courier_id = courier.id
+                        order.assign_time = assign_time
+                        good_orders.append(order)
 
         if not good_orders:
             return assign_time, []
@@ -154,6 +146,9 @@ class Order(Base, BaseDbModel):
             order.courier.last_delivery_time = complete_time_seconds
         else:
             delivery_time = complete_time_seconds - order.courier.last_delivery_time
+            order.courier.last_delivery_time = complete_time_seconds
+
+        # print(order.courier.last_delivery_time, datetime.datetime.fromtimestamp(order.courier.last_delivery_time))
 
         # 1616434714.838184
         region_key = str(order.region)

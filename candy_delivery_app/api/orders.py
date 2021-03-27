@@ -34,17 +34,11 @@ async def assign_orders(request: Request, session: AsyncSession):
         session=session, request=request
     )
 
-    a = web.json_response(
+    return web.json_response(
         data=response.response_data.json(),
         status=response.status_code,
         reason=response.reason,
     )
-    # r = await session.execute(select(Courier).options(selectinload(Courier.orders)))
-    # for i in r.fetchall():
-    #     for j in i[0].orders:
-    #         import datetime
-    #         print(j.weight, datetime.datetime.fromisoformat(j.assign_time))
-    return a
 
 
 @orders_router.post("/orders/complete")

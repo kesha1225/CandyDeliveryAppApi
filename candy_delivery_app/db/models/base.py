@@ -1,10 +1,11 @@
-from typing import Union, List, Optional, Tuple, TypeVar, ClassVar
+from typing import Union, List, Optional, Tuple, TypeVar
 
 from sqlalchemy import select, update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from candy_delivery_app.db.models.utils import check_courier_can_delivery_by_time
 from candy_delivery_app.models.utils import get_timedeltas_from_string
 
 T = TypeVar("T")
@@ -28,9 +29,9 @@ class BaseDbModel:
 
     @classmethod
     async def find_duplicates(
-        cls: T,
-        session: AsyncSession,
-        elements: List[T],
+            cls: T,
+            session: AsyncSession,
+            elements: List[T],
     ) -> List[int]:
         ids = [element.id for element in elements]
         old_ids = [
@@ -43,10 +44,10 @@ class BaseDbModel:
 
     @classmethod
     async def create(
-        cls: T,
-        session: AsyncSession,
-        json_data: dict,
-        id_key: str,
+            cls: T,
+            session: AsyncSession,
+            json_data: dict,
+            id_key: str,
     ) -> Tuple[Optional[List[Union[T, int]]], Optional[List[int]]]:
         elements = cls.get_items_list_from_json(json_data=json_data, id_key=id_key)
         old_ids = await cls.find_duplicates(
@@ -67,6 +68,19 @@ class BaseDbModel:
 
     @classmethod
     async def patch(cls: T, session: AsyncSession, _id: int, new_data: dict) -> Row:
+        # Патч по сути только для курьеров
+
+        """
+        При редактировании следует учесть случаи, когда меняется график и уменьшается грузоподъемность
+         и появляются заказы, которые курьер уже не сможет развести — такие заказы должны
+          сниматься и быть доступными для выдачи другим курьерам.
+
+        :param session:
+        :param _id:
+        :param new_data:
+        :return:
+        """
+
         update_data = {}
 
         for key, value in new_data.items():
@@ -83,10 +97,41 @@ class BaseDbModel:
 
             update_data[key] = value
 
+        await session.execute(
+            update(cls)
+                .where(cls.id == _id)
+                .options(selectinload(cls.orders))
+                .values(update_data)
+        )
+
         new_object = (
             await session.execute(
-                update(cls).where(cls.id == _id).values(update_data).returning(cls)
+                select(cls).where(cls.id == _id).options(selectinload(cls.orders))
             )
-        ).first()
+        ).first()[0]
+
+        if new_object.orders:
+            new_orders = []
+            orders_sum_weight = 0
+            for order in new_object.orders:
+                for order_timedelta in order.delivery_hours_timedeltas:
+                    for courier_timedelta in new_object.working_hours_timedeltas:
+                        if check_courier_can_delivery_by_time(
+                                order_timedelta=order_timedelta,
+                                courier_timedelta=courier_timedelta,
+                        ) and (
+                                round(orders_sum_weight + order.weight, 2)
+                                <= new_object.get_capacity()
+                        ) and (order not in new_orders):
+                            orders_sum_weight = round(
+                                orders_sum_weight + order.weight, 2
+                            )
+                            new_orders.append(order)
+
+            for order in new_object.orders:
+                if order not in new_orders:
+                    order.assign_time = None
+                    order.courier_id = None
+
         await session.commit()
         return new_object

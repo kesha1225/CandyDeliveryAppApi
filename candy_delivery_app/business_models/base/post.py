@@ -51,6 +51,7 @@ class BaseBusinessPostModel:
                         "type": error["type"],
                     }
                 )
+                # TODO: extra fields отвал
                 element_number = error["loc"][1]
                 element_id = json_data["data"][element_number][id_key]
 

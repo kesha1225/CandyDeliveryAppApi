@@ -49,7 +49,7 @@ async def patch_courier(request: Request, session: AsyncSession):
         session=session, request=request
     )
     return web.json_response(
-        data=response.response_data.json(),
+        data=response.response_data.json(exclude_none=True),
         status=response.status_code,
         reason=response.reason,
     )

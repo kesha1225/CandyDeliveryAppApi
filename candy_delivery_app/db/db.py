@@ -13,7 +13,7 @@ session = sessionmaker(engine, class_=AsyncSession)
 
 def get_session(func):
     async def wrapper(request):
-        await update_base()
+        #await update_base()
         async_session = session(expire_on_commit=False)
         try:
             response = await func(request, async_session)
