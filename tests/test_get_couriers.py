@@ -148,12 +148,10 @@ async def test_get_couriers(cli, session_):
     orders_ids = sorted([order["id"] for order in json_data2["orders"]])
     assert orders_ids == [1, 4, 6, 7, 8, 9]
 
-
     resp3 = await cli.post("/orders/assign", json={"courier_id": 3})
     json_data3 = json.loads(await resp3.json())
     orders_ids = sorted([order["id"] for order in json_data3["orders"]])
     assert orders_ids == [3]
-
 
     resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
     courier_data = json.loads(await resp.json())
@@ -173,8 +171,8 @@ async def test_get_couriers(cli, session_):
     current_courier: Courier = (
         await session_.execute(
             select(Courier)
-                .where(Courier.id == courier_id)
-                .options(selectinload(Courier.orders))
+            .where(Courier.id == courier_id)
+            .options(selectinload(Courier.orders))
         )
     ).first()[0]
     for order in current_orders:
@@ -215,8 +213,8 @@ async def test_get_couriers(cli, session_):
     current_courier: Courier = (
         await session_.execute(
             select(Courier)
-                .where(Courier.id == courier_id)
-                .options(selectinload(Courier.orders))
+            .where(Courier.id == courier_id)
+            .options(selectinload(Courier.orders))
         )
     ).first()[0]
     assert current_courier.earnings == 15000
@@ -230,7 +228,7 @@ async def test_get_couriers(cli, session_):
     assert courier_data["courier_id"] == 2
     assert courier_data["courier_type"] == "bike"
     assert courier_data["regions"] == [9, 12, 11]
-    assert courier_data["working_hours"] == ['09:00-18:00']
+    assert courier_data["working_hours"] == ["09:00-18:00"]
     assert courier_data["rating"] == 2.5
     assert courier_data["earnings"] == 15000
 

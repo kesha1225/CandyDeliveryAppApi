@@ -154,7 +154,9 @@ async def test_couriers_complete(cli, session_):
         )
     ).first()[0]
 
-    delivery_time = now.timestamp() - datetime.datetime.fromisoformat(assign_time).timestamp()
+    delivery_time = (
+        now.timestamp() - datetime.datetime.fromisoformat(assign_time).timestamp()
+    )
     assert current_courier.delivery_data["regions"]["9"][0] == delivery_time
     assert current_courier.last_delivery_time == now.timestamp()
     assert current_order.courier_id is None

@@ -103,6 +103,12 @@ async def test_couriers_assign(cli, session_):
                     "regions": [],
                     "working_hours": ["09:00-18:00"],
                 },
+                {
+                    "courier_id": 5,
+                    "courier_type": "car",
+                    "regions": [9, 22, 12],
+                    "working_hours": ["00:00-23:59"],
+                },
             ]
         },
         session=session_,
@@ -157,3 +163,7 @@ async def test_couriers_assign(cli, session_):
     json_data = json.loads(await r.json())
     assert json_data["orders"] == []
     assert json_data.get("assign_time") is None
+
+    r = await cli.post("/orders/assign", json={"courier_id": 5})
+    json_data = json.loads(await r.json())
+    assert len(json_data["orders"]) == 3

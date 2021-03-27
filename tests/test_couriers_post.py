@@ -131,3 +131,97 @@ async def test_couriers_post_bad(cli, session_):
     ]
 
     assert response.status == 400
+
+    response = await cli.post(
+        "/couriers",
+        json={
+            "data": [
+                {
+                    "courier_id": 1,
+                    "courier_type": "foot",
+                    "regions": [1],
+                    "working_hours": ["11:35-14:05", "09:00-11:00"],
+                },
+                {
+                    "courier_id": 2,
+                    "courier_type": "bike",
+                    "regions": [9],
+                    "working_hours": ["09:00-18:00"],
+                },
+                {
+                    "courier_id": 3,
+                    "courier_type": "car",
+                    "regions": [12, 22, 24, 33],
+                    "working_hours": ["24:00-18:00"],
+                },
+            ]
+        },
+    )
+    json_response = json.loads(await response.json())
+    assert json_response["validation_error"]["couriers"] == [{"id": 3}]
+    assert json_response["validation_error"]["errors_data"][0]["location"] == ['data', 2, 'working_hours']
+    assert response.status == 400
+
+    response = await cli.post(
+        "/couriers",
+        json={
+            "data": [
+                {
+                    "courier_id": 1,
+                    "courier_type": "foot",
+                    "regions": [1],
+                    "working_hours": ["11:35-shue", "09:00-11:00"],
+                },
+                {
+                    "courier_id": 2,
+                    "courier_type": "bike",
+                    "regions": [9, -3],
+                    "working_hours": ["09:00-18:00"],
+                },
+                {
+                    "courier_id": 3,
+                    "courier_type": "car",
+                    "regions": [12, "22", 24, 33],
+                    "working_hours": ["11:00-18:00"],
+                },
+            ]
+        },
+    )
+    json_response = json.loads(await response.json())
+    assert json_response["validation_error"]["couriers"] == [{'id': 1}, {'id': 2}, {'id': 3}]
+    assert json_response["validation_error"]["errors_data"][0]["msg"] == 'Invalid date - 11:35-shue'
+    assert json_response["validation_error"]["errors_data"][1]["type"] == 'value_error.number.not_ge'
+    assert json_response["validation_error"]["errors_data"][2]["location"] == ['data', 2, 'regions', 1]
+
+    response = await cli.post(
+        "/couriers",
+        json={
+            "data": [
+                {
+                    "courier_id": 1,
+                    "courier_type": "foot",
+                    "regions": [1],
+                    "working_hours": ["11:35-12:00", "09:00-11:00"],
+                },
+            ]
+        },
+    )
+    json_response = json.loads(await response.json())
+    assert json_response == {'couriers': [{'id': 1}]}
+
+    response = await cli.post(
+        "/couriers",
+        json={
+            "data": [
+                {
+                    "courier_id": 1,
+                    "courier_type": "bike",
+                    "regions": [2],
+                    "working_hours": ["12:35-14:00", "09:00-11:00"],
+                },
+            ]
+        },
+    )
+    json_response = json.loads(await response.json())
+    assert json_response["validation_error"]["couriers"] == [{'id': 1}]
+    assert json_response["validation_error"]["errors_data"][0]["msg"] == "id duplicates"
