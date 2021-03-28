@@ -86,8 +86,6 @@ class Courier(Base, BaseDbModel):
         if base_courier.delivery_data is None:
             return base_courier
 
-        #  {"regions": {"12": [1616434714.838184]}}
-
         for region, times in base_courier.delivery_data["regions"].items():
             average_values.append(sum(times) / len(times))
 

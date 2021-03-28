@@ -13,7 +13,6 @@ session = sessionmaker(engine, class_=AsyncSession)
 
 def get_session(func):
     async def wrapper(request):
-        # await update_base()
         async_session = session(expire_on_commit=False)
         try:
             response = await func(request, async_session)
@@ -26,6 +25,13 @@ def get_session(func):
 
 
 async def update_base():
+    async_session = session(expire_on_commit=False)
+
+    await async_session.execute("DROP TABLE IF EXISTS orders CASCADE")
+    await async_session.execute("DROP TABLE IF EXISTS couriers CASCADE")
+    await async_session.commit()
+
+    await async_session.close()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)

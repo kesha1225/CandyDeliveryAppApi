@@ -183,11 +183,6 @@ class Order(Base, BaseDbModel):
 
             order.courier.delivery_data["not_completed_regions"] = {}
 
-            # if order.courier.delivery_data["regions"].get(region_key) is None:
-            #     order.courier.delivery_data["regions"][region_key] = [delivery_time]
-            # else:
-            #     order.courier.delivery_data["regions"][region_key].append(delivery_time)
-
         # работай пж
         await session.execute(
             update(Order)

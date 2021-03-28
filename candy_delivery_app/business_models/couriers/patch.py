@@ -53,7 +53,6 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
 
         if error is not None:
             return 400, "Bad Request", cls.error_handler(validation_error=error)
-            # raise web.HTTPBadRequest
 
         return (
             200,

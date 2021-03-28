@@ -69,17 +69,6 @@ class BaseDbModel:
     async def patch(cls: T, session: AsyncSession, _id: int, new_data: dict) -> Row:
         # Патч по сути только для курьеров
 
-        """
-        При редактировании следует учесть случаи, когда меняется график и уменьшается грузоподъемность
-         и появляются заказы, которые курьер уже не сможет развести — такие заказы должны
-          сниматься и быть доступными для выдачи другим курьерам.
-
-        :param session:
-        :param _id:
-        :param new_data:
-        :return:
-        """
-
         update_data = {}
 
         for key, value in new_data.items():
