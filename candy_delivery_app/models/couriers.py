@@ -84,6 +84,10 @@ class CourierUpdateRequestModel(CoreModel):
     )
 
 
+class CourierUpdateBadRequestModel(CoreModel):
+    validation_error: dict
+
+
 class CourierUpdateResponseModel(CoreModel):
     courier_id: COURIER_ID
     courier_type: CourierType

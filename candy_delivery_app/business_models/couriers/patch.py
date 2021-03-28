@@ -2,6 +2,7 @@ from typing import Tuple, Union, NoReturn
 
 from aiohttp import web
 from aiohttp.web_request import Request
+from pydantic import ValidationError
 from pydantic.main import validate_model
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,7 +12,7 @@ from candy_delivery_app.models._types import STATUS_CODE, REASON, MODEL_DATA
 from candy_delivery_app.models.couriers import (
     CourierUpdateRequestModel,
     CourierUpdateResponseModel,
-    CourierIdForQuery,
+    CourierIdForQuery, CourierUpdateBadRequestModel,
 )
 
 
@@ -51,13 +52,35 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
         values, fields_set, error = validate_model(cls, json_data)
 
         if error is not None:
-            raise web.HTTPBadRequest
+            return 400, "Bad Request", cls.error_handler(validation_error=error)
+            #raise web.HTTPBadRequest
 
         return (
             200,
             "OK",
             cls.success_handler({"new_data": values, "courier_id": data}),
         )
+
+    @classmethod
+    def error_handler(
+        cls,
+        validation_error: ValidationError,
+    ):
+        errors_data = []
+        for error in validation_error.errors():
+            errors_data.append(
+                {
+                    "location": error["loc"],
+                    "msg": error["msg"],
+                    "type": error["type"],
+                }
+            )
+        response_bad_data = {
+            "validation_error": {
+                "errors_data": errors_data,
+            }
+        }
+        return response_bad_data
 
     @staticmethod
     def success_handler(values):
@@ -68,6 +91,13 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
         cls, session: AsyncSession, request: Request
     ) -> ApiResponse:
         status_code, reason, data = await cls.get_model_from_json_data(request=request)
+        if status_code == 400:
+            return ApiResponse(
+                status_code=status_code,
+                reason=reason,
+                response_data=CourierUpdateBadRequestModel.parse_obj(data)
+                )
+
         new_courier = await Courier.patch_courier(
             session=session, courier_id=data["courier_id"], new_data=data["new_data"]
         )
