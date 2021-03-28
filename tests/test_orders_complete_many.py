@@ -141,7 +141,7 @@ async def test_couriers_complete_many(cli, session_):
         assert order.courier_id == courier_id
     assert current_courier.orders == current_orders
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
 
     for i, order in enumerate(current_orders, start=1):
         now += datetime.timedelta(minutes=5 * i)
@@ -150,7 +150,7 @@ async def test_couriers_complete_many(cli, session_):
             json={
                 "courier_id": courier_id,
                 "order_id": order.id,
-                "complete_time": now.isoformat(),
+                "complete_time": now.isoformat() + "Z",
             },
         )
         assert json.loads(await resp.json())["order_id"] == order.id

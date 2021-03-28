@@ -2,6 +2,7 @@ import datetime
 from typing import List, Union, Optional, Dict, Tuple
 
 from pydantic import Field, conint, confloat, validator, BaseModel
+from dateutil import parser
 
 from ._types import COURIER_ID, ORDER_ID, HOURS_LIST
 from .settings import CoreModel
@@ -56,7 +57,15 @@ class OrdersAssignPostResponseModel(OrdersAssignPostEmptyResponseModel):
 class OrdersCompletePostRequestModel(CoreModel):
     courier_id: COURIER_ID
     order_id: ORDER_ID
-    complete_time: datetime.datetime
+    complete_time: str
+
+    @validator("complete_time")
+    def check_time_type(cls, value):
+        try:
+            parser.isoparse(value)
+        except ValueError:
+            raise ValueError()
+        return value
 
 
 class OrdersCompletePostResponseModel(CoreModel):

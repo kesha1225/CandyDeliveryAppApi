@@ -4,6 +4,7 @@ from aiohttp import web
 from aiohttp.web_request import Request
 from pydantic import validate_model
 from sqlalchemy.ext.asyncio import AsyncSession
+from dateutil import parser
 
 from candy_delivery_app.business_models import ApiResponse
 from candy_delivery_app.business_models.base.post import BaseBusinessPostModel
@@ -113,6 +114,7 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
             data["courier_id"],
             data["complete_time"],
         )
+        complete_time = parser.isoparse(complete_time)
 
         order = await Order.get_one(session=session, _id=order_id)
         if (
