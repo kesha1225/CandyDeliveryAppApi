@@ -154,8 +154,6 @@ class Order(Base, BaseDbModel):
             delivery_time = complete_time_seconds - order.courier.last_delivery_time
             order.courier.last_delivery_time = complete_time_seconds
 
-        # print(order.courier.last_delivery_time, datetime.datetime.fromtimestamp(order.courier.last_delivery_time))
-
         # 1616434714.838184
         region_key = str(order.region)
 
