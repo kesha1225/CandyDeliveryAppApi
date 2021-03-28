@@ -15,7 +15,6 @@ class BaseDbModel:
     @classmethod
     def get_items_list_from_json(cls: T, json_data: dict, id_key: str) -> List[T]:
         items = []
-        # TODO: бяка
         for data in json_data["data"]:
             data["id"] = data.pop(id_key)
             if data.get("working_hours"):

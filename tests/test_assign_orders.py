@@ -75,7 +75,6 @@ async def test_couriers_assign_empty(cli, session_):
 
 
 async def test_couriers_assign(cli, session_):
-    # TODO: 20:00-05:00
 
     await update_base()
     await Courier.create_couriers(

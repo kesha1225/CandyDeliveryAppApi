@@ -6,7 +6,7 @@
 
 1) Склонируйте [репозиторий](https://github.com/kesha1225/CandyDeliveryAppApi)
 
-2) ```cd CandyDeliveryAppApi```
+2) ```cd CandyDeliveryAppApi/```
 
 3) Создайте виртуальное окружение (если его нет) - ```python3 -m virtualenv venv``` 
    и активируйте его - ```source venv/bin/activate```
