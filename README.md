@@ -24,7 +24,9 @@
 #### API
 Для запуска API после установки в активированном виртуальном окружении 
 запустите
-```gunicorn app:app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker```
+```
+gunicorn app:app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
+```
 
 #### Тесты
 Для запуска тестов после установки в активированном виртуальном окружении 
