@@ -16,6 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.operators import is_
 
 from .base import BaseDbModel
 from .couriers import Courier
@@ -56,8 +57,6 @@ class Order(Base, BaseDbModel):
         cls, session: AsyncSession, courier_id: int
     ) -> Tuple[str, List["Order"]]:
 
-        # выдача новых если например один старый остался и место освободилось
-
         courier = await Courier.get_courier(courier_id=courier_id, session=session)
         if courier is None:
             raise web.HTTPBadRequest
@@ -72,6 +71,7 @@ class Order(Base, BaseDbModel):
                     Order.region.in_(courier.regions),
                     not_(Order.completed),
                     Order.weight <= courier.get_capacity(),
+                    is_(Order.courier_id, None),
                 )
             )
             .order_by(Order.weight)
@@ -103,8 +103,6 @@ class Order(Base, BaseDbModel):
                             <= courier.get_capacity()
                         )
                     ):
-                        if order.courier_id is not None:  # заказ выдан кому то другому
-                            continue
                         orders_sum_weight = round(orders_sum_weight + order.weight, 2)
                         order.cost = 500 * courier.get_coefficient()
                         order.courier_id = courier.id
@@ -135,8 +133,8 @@ class Order(Base, BaseDbModel):
         courier = (
             await session.execute(
                 select(Courier)
-                    .where(Courier.id == order.courier_id)
-                    .options(selectinload(Courier.orders))
+                .where(Courier.id == order.courier_id)
+                .options(selectinload(Courier.orders))
             )
         ).fetchall()[0][0]
 
@@ -162,10 +160,17 @@ class Order(Base, BaseDbModel):
         region_key = str(order.region)
 
         if len(courier.orders) > 1:
-            if order.courier.delivery_data["not_completed_regions"].get(region_key) is None:
-                order.courier.delivery_data["not_completed_regions"][region_key] = [delivery_time]
+            if (
+                order.courier.delivery_data["not_completed_regions"].get(region_key)
+                is None
+            ):
+                order.courier.delivery_data["not_completed_regions"][region_key] = [
+                    delivery_time
+                ]
             else:
-                order.courier.delivery_data["not_completed_regions"][region_key].append(delivery_time)
+                order.courier.delivery_data["not_completed_regions"][region_key].append(
+                    delivery_time
+                )
         else:
             for k, v in order.courier.delivery_data["not_completed_regions"].items():
                 if order.courier.delivery_data["regions"].get(k) is None:
@@ -189,8 +194,14 @@ class Order(Base, BaseDbModel):
         await session.execute(
             update(Order)
             .where(Order.id == order_id)
-            .values({"completed": True, "courier_id": None, "old_courier_id": order.courier.id,
-                     "completed_time": complete_time.isoformat()})
+            .values(
+                {
+                    "completed": True,
+                    "courier_id": None,
+                    "old_courier_id": order.courier.id,
+                    "completed_time": complete_time.isoformat(),
+                }
+            )
         )
         await session.execute(
             update(Courier)

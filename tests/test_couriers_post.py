@@ -159,7 +159,11 @@ async def test_couriers_post_bad(cli, session_):
     )
     json_response = json.loads(await response.json())
     assert json_response["validation_error"]["couriers"] == [{"id": 3}]
-    assert json_response["validation_error"]["errors_data"][0]["location"] == ['data', 2, 'working_hours']
+    assert json_response["validation_error"]["errors_data"][0]["location"] == [
+        "data",
+        2,
+        "working_hours",
+    ]
     assert response.status == 400
 
     response = await cli.post(
@@ -188,10 +192,25 @@ async def test_couriers_post_bad(cli, session_):
         },
     )
     json_response = json.loads(await response.json())
-    assert json_response["validation_error"]["couriers"] == [{'id': 1}, {'id': 2}, {'id': 3}]
-    assert json_response["validation_error"]["errors_data"][0]["msg"] == 'Invalid date - 11:35-shue'
-    assert json_response["validation_error"]["errors_data"][1]["type"] == 'value_error.number.not_ge'
-    assert json_response["validation_error"]["errors_data"][2]["location"] == ['data', 2, 'regions', 1]
+    assert json_response["validation_error"]["couriers"] == [
+        {"id": 1},
+        {"id": 2},
+        {"id": 3},
+    ]
+    assert (
+        json_response["validation_error"]["errors_data"][0]["msg"]
+        == "Invalid date - 11:35-shue"
+    )
+    assert (
+        json_response["validation_error"]["errors_data"][1]["type"]
+        == "value_error.number.not_ge"
+    )
+    assert json_response["validation_error"]["errors_data"][2]["location"] == [
+        "data",
+        2,
+        "regions",
+        1,
+    ]
 
     response = await cli.post(
         "/couriers",
@@ -207,7 +226,7 @@ async def test_couriers_post_bad(cli, session_):
         },
     )
     json_response = json.loads(await response.json())
-    assert json_response == {'couriers': [{'id': 1}]}
+    assert json_response == {"couriers": [{"id": 1}]}
 
     response = await cli.post(
         "/couriers",
@@ -225,5 +244,5 @@ async def test_couriers_post_bad(cli, session_):
     json_response = json.loads(await response.json())
     assert response.status == 400
     assert response.reason == "Bad Request"
-    assert json_response["validation_error"]["couriers"] == [{'id': 1}]
+    assert json_response["validation_error"]["couriers"] == [{"id": 1}]
     assert json_response["validation_error"]["errors_data"][0]["msg"] == "id duplicates"

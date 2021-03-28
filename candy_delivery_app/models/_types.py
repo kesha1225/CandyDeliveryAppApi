@@ -1,7 +1,6 @@
 from typing import Type, Union
 
-from pydantic import conlist, constr, conint
-from pydantic.main import BaseModel
+from pydantic import conlist, constr, conint, BaseModel
 
 REGIONS = conlist(conint(strict=True, ge=0))
 HOURS_LIST = conlist(constr(strict=True))

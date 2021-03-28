@@ -6,15 +6,13 @@ from sqlalchemy import (
     Enum,
     ARRAY,
     FLOAT,
-    DECIMAL,
-    Interval,
     JSON,
     String,
     select,
 )
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, backref, selectinload
+from sqlalchemy.orm import relationship, selectinload
 
 from .base import BaseDbModel
 from ..db import Base
@@ -77,7 +75,7 @@ class Courier(Base, BaseDbModel):
 
     @classmethod
     async def get_all_data_courier(
-            cls, session: AsyncSession, courier_id: int
+        cls, session: AsyncSession, courier_id: int
     ) -> Optional["Courier"]:
         base_courier = await cls.get_courier(session=session, courier_id=courier_id)
         if base_courier is None:
@@ -98,7 +96,7 @@ class Courier(Base, BaseDbModel):
 
         t = min(average_values)
 
-        rating = (60*60 - min(t, 60*60))/(60*60) * 5
+        rating = (60 * 60 - min(t, 60 * 60)) / (60 * 60) * 5
         base_courier.rating = round(rating, 2)
         await session.commit()
         return base_courier

@@ -2,4 +2,4 @@ from candy_delivery_app.business_models.couriers.patch import CouriersUpdateRequ
 from candy_delivery_app.business_models.couriers.post import CouriersPostRequest
 
 
-__all__ = (CouriersPostRequest, CouriersUpdateRequest)
+__all__ = ("CouriersPostRequest", "CouriersUpdateRequest")

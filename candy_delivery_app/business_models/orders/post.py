@@ -1,9 +1,8 @@
-import datetime
-from typing import Tuple, List, Dict
+from typing import Tuple, Dict
 
 from aiohttp import web
 from aiohttp.web_request import Request
-from pydantic.main import validate_model, BaseModel
+from pydantic import validate_model
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from candy_delivery_app.business_models import ApiResponse
@@ -107,7 +106,7 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
     ) -> ApiResponse:
         json_data = await request.json()
 
-        status_code, reason, data = await cls.get_model_from_json_data(json_data)
+        _, reason, data = await cls.get_model_from_json_data(json_data)
 
         order_id, courier_id, complete_time = (
             data["order_id"],
@@ -125,7 +124,9 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
         ):
             raise web.HTTPBadRequest
 
-        await Order.complete_order(session=session, order_id=order_id, complete_time=complete_time)
+        await Order.complete_order(
+            session=session, order_id=order_id, complete_time=complete_time
+        )
         return ApiResponse(
             status_code=200,
             reason="OK",

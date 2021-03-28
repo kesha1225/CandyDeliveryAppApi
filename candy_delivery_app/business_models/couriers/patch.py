@@ -2,8 +2,7 @@ from typing import Tuple, Union, NoReturn
 
 from aiohttp import web
 from aiohttp.web_request import Request
-from pydantic import ValidationError
-from pydantic.main import validate_model
+from pydantic import ValidationError, validate_model
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from candy_delivery_app.business_models import ApiResponse
@@ -12,7 +11,8 @@ from candy_delivery_app.models._types import STATUS_CODE, REASON, MODEL_DATA
 from candy_delivery_app.models.couriers import (
     CourierUpdateRequestModel,
     CourierUpdateResponseModel,
-    CourierIdForQuery, CourierUpdateBadRequestModel,
+    CourierIdForQuery,
+    CourierUpdateBadRequestModel,
 )
 
 
@@ -25,7 +25,7 @@ class CourierIdRequest(CourierIdForQuery):
     async def get_model_from_json_data(
         cls, request: Request
     ) -> Union[Tuple[STATUS_CODE, REASON, MODEL_DATA], NoReturn]:
-        values, fields_set, error = validate_model(
+        values, _, error = validate_model(
             cls, {"id": request.match_info.get("courier_id")}
         )
 
@@ -49,11 +49,11 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
         _, _, data = await CourierIdRequest.get_model_from_json_data(request=request)
         #  400 быть не может так как там рейс
 
-        values, fields_set, error = validate_model(cls, json_data)
+        values, _, error = validate_model(cls, json_data)
 
         if error is not None:
             return 400, "Bad Request", cls.error_handler(validation_error=error)
-            #raise web.HTTPBadRequest
+            # raise web.HTTPBadRequest
 
         return (
             200,
@@ -95,8 +95,8 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
             return ApiResponse(
                 status_code=status_code,
                 reason=reason,
-                response_data=CourierUpdateBadRequestModel.parse_obj(data)
-                )
+                response_data=CourierUpdateBadRequestModel.parse_obj(data),
+            )
 
         new_courier = await Courier.patch_courier(
             session=session, courier_id=data["courier_id"], new_data=data["new_data"]

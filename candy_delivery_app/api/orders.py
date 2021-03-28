@@ -1,8 +1,6 @@
 from aiohttp import web
 from aiohttp.web_request import Request
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from ..business_models.orders.post import (
     OrdersPostRequest,
@@ -10,8 +8,6 @@ from ..business_models.orders.post import (
     OrdersCompletePostRequest,
 )
 from ..db.db import get_session
-from ..db.models.couriers import Courier
-from ..db.models.orders import Order
 
 orders_router = web.RouteTableDef()
 

@@ -2,7 +2,6 @@ from typing import Tuple
 
 from aiohttp import web
 from aiohttp.web_request import Request
-from pydantic.main import validate_model
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from candy_delivery_app.business_models import ApiResponse
@@ -10,9 +9,7 @@ from candy_delivery_app.business_models.couriers.patch import CourierIdRequest
 from candy_delivery_app.db.models.couriers import Courier
 from candy_delivery_app.models._types import STATUS_CODE, REASON, MODEL_DATA
 from candy_delivery_app.models.couriers import (
-    CourierUpdateResponseModel,
     CourierGetResponseModel,
-    CourierGetResponseModelNoRating,
 )
 
 
@@ -56,5 +53,5 @@ class CouriersGetRequest(CourierGetResponseModel):
         return ApiResponse(
             status_code=status_code,
             reason=reason,
-            response_data=CourierGetResponseModel.parse_obj(response)
+            response_data=CourierGetResponseModel.parse_obj(response),
         )

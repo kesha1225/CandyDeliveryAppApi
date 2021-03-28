@@ -98,14 +98,19 @@ class BaseBusinessPostModel:
                 response_data=bad_request_model.parse_obj(data),
             )
 
-        couriers, errors_ids = await create_method(session=session, json_data=json_data)
+        _, errors_ids = await create_method(session=session, json_data=json_data)
         if errors_ids is not None:
             errors_data = []
             for error_id in errors_ids:
                 for i, element in enumerate(json_data["data"]):
                     if element["id"] == error_id:
                         errors_data.append(
-                            {"location": ("data", i, id_key), "msg": "id duplicates", "type": "IntegrityError"})
+                            {
+                                "location": ("data", i, id_key),
+                                "msg": "id duplicates",
+                                "type": "IntegrityError",
+                            }
+                        )
 
             return ApiResponse(
                 status_code=400,
@@ -114,7 +119,7 @@ class BaseBusinessPostModel:
                     {
                         "validation_error": {
                             items_key: [{"id": id_} for id_ in errors_ids],
-                            "errors_data": errors_data
+                            "errors_data": errors_data,
                         }
                     }
                 ),

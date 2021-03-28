@@ -28,9 +28,9 @@ class BaseDbModel:
 
     @classmethod
     async def find_duplicates(
-            cls: T,
-            session: AsyncSession,
-            elements: List[T],
+        cls: T,
+        session: AsyncSession,
+        elements: List[T],
     ) -> List[int]:
         ids = [element.id for element in elements]
         old_ids = [
@@ -43,10 +43,10 @@ class BaseDbModel:
 
     @classmethod
     async def create(
-            cls: T,
-            session: AsyncSession,
-            json_data: dict,
-            id_key: str,
+        cls: T,
+        session: AsyncSession,
+        json_data: dict,
+        id_key: str,
     ) -> Tuple[Optional[List[Union[T, int]]], Optional[List[int]]]:
         elements = cls.get_items_list_from_json(json_data=json_data, id_key=id_key)
         old_ids = await cls.find_duplicates(
@@ -98,9 +98,9 @@ class BaseDbModel:
 
         await session.execute(
             update(cls)
-                .where(cls.id == _id)
-                .options(selectinload(cls.orders))
-                .values(update_data)
+            .where(cls.id == _id)
+            .options(selectinload(cls.orders))
+            .values(update_data)
         )
 
         new_object = (
@@ -115,13 +115,18 @@ class BaseDbModel:
             for order in new_object.orders:
                 for order_timedelta in order.delivery_hours_timedeltas:
                     for courier_timedelta in new_object.working_hours_timedeltas:
-                        if check_courier_can_delivery_by_time(
+                        if (
+                            check_courier_can_delivery_by_time(
                                 order_timedelta=order_timedelta,
                                 courier_timedelta=courier_timedelta,
-                        ) and (
+                            )
+                            and (
                                 round(orders_sum_weight + order.weight, 2)
                                 <= new_object.get_capacity()
-                        ) and (order not in new_orders) and (order.region in new_object.regions):
+                            )
+                            and (order not in new_orders)
+                            and (order.region in new_object.regions)
+                        ):
                             orders_sum_weight = round(
                                 orders_sum_weight + order.weight, 2
                             )

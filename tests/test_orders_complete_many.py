@@ -199,7 +199,7 @@ async def test_couriers_complete_many(cli, session_):
 
     resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
     json_data = json.loads(await resp.json())
-    assert json_data["orders"] == [{'id': 9}, {'id': 8}]
+    assert json_data["orders"] == [{"id": 9}, {"id": 8}]
     old_resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
     old_resp_json = json.loads(await old_resp.json())
 
