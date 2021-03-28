@@ -31,3 +31,6 @@ gunicorn app:app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
 #### Тесты
 Для запуска тестов после установки в активированном виртуальном окружении 
 запустите ```pytest tests/```
+
+#### База
+Для сброса базы можно использовать ```python3 update_base.py```
