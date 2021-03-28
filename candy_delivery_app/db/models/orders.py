@@ -81,9 +81,7 @@ class Order(Base, BaseDbModel):
         orders_sum_weight = 0
 
         if courier.orders:
-            for order in courier.orders:
-                good_orders.append(order)
-                orders_sum_weight = round(orders_sum_weight + order.weight, 2)
+            return courier.orders[0].assign_time, courier.orders
 
         raw_orders = orders.fetchall()
 
@@ -133,10 +131,19 @@ class Order(Base, BaseDbModel):
         ).fetchall()[0][0]
         if order.courier is None:
             return
+
+        courier = (
+            await session.execute(
+                select(Courier)
+                    .where(Courier.id == order.courier_id)
+                    .options(selectinload(Courier.orders))
+            )
+        ).fetchall()[0][0]
+
         order.courier.earnings += order.cost
 
         if order.courier.delivery_data is None:
-            order.courier.delivery_data = {"regions": {}}
+            order.courier.delivery_data = {"regions": {}, "not_completed_regions": {}}
 
         complete_time_seconds = complete_time.timestamp()
         if order.courier.last_delivery_time is None:
@@ -154,10 +161,29 @@ class Order(Base, BaseDbModel):
         # 1616434714.838184
         region_key = str(order.region)
 
-        if order.courier.delivery_data["regions"].get(region_key) is None:
-            order.courier.delivery_data["regions"][region_key] = [delivery_time]
+        if len(courier.orders) > 1:
+            if order.courier.delivery_data["not_completed_regions"].get(region_key) is None:
+                order.courier.delivery_data["not_completed_regions"][region_key] = [delivery_time]
+            else:
+                order.courier.delivery_data["not_completed_regions"][region_key].append(delivery_time)
         else:
-            order.courier.delivery_data["regions"][region_key].append(delivery_time)
+            for k, v in order.courier.delivery_data["not_completed_regions"].items():
+                if order.courier.delivery_data["regions"].get(k) is None:
+                    order.courier.delivery_data["regions"][k] = v
+                else:
+                    order.courier.delivery_data["regions"][k].extend(v)
+
+            if order.courier.delivery_data["regions"].get(region_key) is None:
+                order.courier.delivery_data["regions"][region_key] = [delivery_time]
+            else:
+                order.courier.delivery_data["regions"][region_key].append(delivery_time)
+
+            order.courier.delivery_data["not_completed_regions"] = {}
+
+            # if order.courier.delivery_data["regions"].get(region_key) is None:
+            #     order.courier.delivery_data["regions"][region_key] = [delivery_time]
+            # else:
+            #     order.courier.delivery_data["regions"][region_key].append(delivery_time)
 
         # работай пж
         await session.execute(

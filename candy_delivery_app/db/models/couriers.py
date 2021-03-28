@@ -93,6 +93,9 @@ class Courier(Base, BaseDbModel):
         for region, times in base_courier.delivery_data["regions"].items():
             average_values.append(sum(times) / len(times))
 
+        if not average_values:
+            return base_courier
+
         t = min(average_values)
 
         rating = (60*60 - min(t, 60*60))/(60*60) * 5

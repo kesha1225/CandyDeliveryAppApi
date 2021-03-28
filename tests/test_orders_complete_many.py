@@ -141,8 +141,10 @@ async def test_couriers_complete_many(cli, session_):
         assert order.courier_id == courier_id
     assert current_courier.orders == current_orders
 
-    for order in current_orders:
-        now = datetime.datetime.now() + datetime.timedelta(minutes=5)
+    now = datetime.datetime.now()
+
+    for i, order in enumerate(current_orders, start=1):
+        now += datetime.timedelta(minutes=5 * i)
         resp = await cli.post(
             "/orders/complete",
             json={
@@ -153,6 +155,67 @@ async def test_couriers_complete_many(cli, session_):
         )
         assert json.loads(await resp.json())["order_id"] == order.id
         assert resp.status == 200
+
+        resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
+        courier_data = json.loads(await resp.json())
+        if i in [1, 2, 3]:
+            assert courier_data.get("rating") is None
+        else:
+            assert courier_data.get("rating") == 4.17
+
+        resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
+
+    resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
+    resp = await cli.post(
+        "/orders/complete",
+        json={
+            "courier_id": courier_id,
+            "order_id": 2,
+            "complete_time": (now + datetime.timedelta(minutes=40)).isoformat(),
+        },
+    )
+
+    r = await cli.post(
+        "/orders",
+        json={
+            "data": [
+                {
+                    "order_id": 8,
+                    "weight": 0.5,
+                    "region": 12,
+                    "delivery_hours": ["09:00-12:00"],
+                },
+                {
+                    "order_id": 9,
+                    "weight": 0.2,
+                    "region": 9,
+                    "delivery_hours": ["17:00-21:30"],
+                },
+            ]
+        },
+    )
+    json_data = json.loads(await r.json())
+    assert json_data["orders"] == [{"id": 8}, {"id": 9}]
+
+    resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
+    json_data = json.loads(await resp.json())
+    assert json_data["orders"] == [{'id': 9}, {'id': 8}]
+    old_resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
+    old_resp_json = json.loads(await old_resp.json())
+
+    resp = await cli.post(
+        "/orders/complete",
+        json={
+            "courier_id": courier_id,
+            "order_id": 8,
+            "complete_time": (now + datetime.timedelta(minutes=45)).isoformat(),
+        },
+    )
+
+    new_resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
+    new_resp_json = json.loads(await new_resp.json())
+    assert old_resp_json["rating"] == new_resp_json["rating"]
+    assert old_resp_json["earnings"] < new_resp_json["earnings"]
 
     await session_.commit()
 
@@ -172,8 +235,9 @@ async def test_couriers_complete_many(cli, session_):
             .options(selectinload(Courier.orders))
         )
     ).first()[0]
-    assert current_courier.earnings == 10000
+    assert current_courier.earnings == 15000
     assert len(current_courier.delivery_data["regions"]["12"]) == 3
-    assert len(current_courier.delivery_data["regions"]["9"]) == 1
+    assert len(current_courier.delivery_data["regions"]["9"]) == 2
+    assert len(current_courier.delivery_data["not_completed_regions"]["12"]) == 1
 
-    assert current_courier.orders == []
+    assert len(current_courier.orders) == 1

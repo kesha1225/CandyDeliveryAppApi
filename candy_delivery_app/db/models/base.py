@@ -122,7 +122,7 @@ class BaseDbModel:
                         ) and (
                                 round(orders_sum_weight + order.weight, 2)
                                 <= new_object.get_capacity()
-                        ) and (order not in new_orders):
+                        ) and (order not in new_orders) and (order.region in new_object.regions):
                             orders_sum_weight = round(
                                 orders_sum_weight + order.weight, 2
                             )

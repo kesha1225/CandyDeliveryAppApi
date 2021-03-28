@@ -191,12 +191,8 @@ async def test_get_couriers(cli, session_):
                 "complete_time": now.isoformat(),
             },
         )
-        # TODO: че делать если место освободилось
         # resp11 = await cli.post("/orders/assign", json={"courier_id": courier_id})
         # json_data11 = json.loads(await resp11.json())
-        # print(json_data11)
-        # raise
-        # assert json.loads(await resp.json())["order_id"] == order.id
         assert resp.status == 200
 
     await session_.commit()

@@ -63,7 +63,7 @@ async def test_couriers_patch(cli, session_):
                 {
                     "courier_id": 3,
                     "courier_type": "car",
-                    "regions": [9, 12, 22, 24, 33],
+                    "regions": [9, 12, 22, 24, 33, 13],
                     "working_hours": ["09:00-18:00"],
                 },
             ]
@@ -72,7 +72,7 @@ async def test_couriers_patch(cli, session_):
     )
     couriers = (await session_.execute("SELECT * FROM couriers")).fetchall()
 
-    assert couriers[2].regions == [9, 12, 22, 24, 33]
+    assert couriers[2].regions == [9, 12, 22, 24, 33, 13]
     assert couriers[2].working_hours == ["09:00-18:00"]
     assert couriers[2].working_hours_timedeltas == [
         {"first_time": 32400, "second_time": 64800}
@@ -106,11 +106,24 @@ async def test_couriers_patch(cli, session_):
                     "region": 12,
                     "delivery_hours": ["17:00-21:30"],
                 },
+                {
+                    "order_id": 5,
+                    "weight": 0.3,
+                    "region": 13,
+                    "delivery_hours": ["17:00-21:30"],
+                },
             ]
         },
     )
 
     resp = await cli.post("/orders/assign", json={"courier_id": 3})
+
+    courier = (
+        await session_.execute(
+            select(Courier).where(Courier.id == 3).options(selectinload(Courier.orders))
+        )
+    ).first()[0]
+    assert len(courier.orders) == 5
 
     await Courier.patch_courier(
         session=session_,
