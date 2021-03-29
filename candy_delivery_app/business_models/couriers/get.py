@@ -22,8 +22,8 @@ class CouriersGetRequest(CourierGetResponseModel):
         _, _, data = await CourierIdRequest.get_model_from_json_data(request=request)
 
         return (
-            200,
-            "OK",
+            web.HTTPOk.status_code,
+            web.HTTPOk().reason,
             cls.success_handler(data),
         )
 

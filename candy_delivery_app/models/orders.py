@@ -50,6 +50,10 @@ class OrdersAssignPostResponseModel(CoreModel):
     assign_time: Optional[datetime.datetime]
 
 
+class OrderCompleteBadRequestModel(CoreModel):
+    validation_error: dict
+
+
 class OrdersCompletePostRequestModel(CoreModel):
     courier_id: COURIER_ID
     order_id: ORDER_ID
@@ -60,7 +64,7 @@ class OrdersCompletePostRequestModel(CoreModel):
         try:
             parser.isoparse(value)
         except ValueError:
-            raise ValueError()
+            raise ValueError("incorrect complete_time")
         return value
 
 

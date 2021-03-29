@@ -1,5 +1,6 @@
 from typing import Tuple, List, Type, Union, Callable
 
+from aiohttp import web
 from aiohttp.web_request import Request
 from pydantic import ValidationError, BaseModel
 from pydantic.main import validate_model
@@ -19,14 +20,14 @@ class BaseBusinessPostModel:
         values, fields_set, error = validate_model(cls, json_data)
         if error is not None:
             return (
-                400,
-                "Bad Request",
+                web.HTTPBadRequest.status_code,
+                web.HTTPBadRequest().reason,
                 cls.error_handler(json_data, error, id_key=id_key, items_key=items_key),
             )
 
         return (
-            201,
-            "Created",
+            web.HTTPCreated.status_code,
+            web.HTTPCreated().reason,
             cls.success_handler(values["data"], id_key=id_key, items_key=items_key),
         )
 
@@ -91,7 +92,7 @@ class BaseBusinessPostModel:
             json_data, id_key=id_key, items_key=items_key
         )
 
-        if status_code == 400:
+        if status_code == web.HTTPBadRequest.status_code:
             return ApiResponse(
                 status_code=status_code,
                 reason=reason,
@@ -113,8 +114,8 @@ class BaseBusinessPostModel:
                         )
 
             return ApiResponse(
-                status_code=400,
-                reason="Bad Request",
+                status_code=web.HTTPBadRequest.status_code,
+                reason=web.HTTPBadRequest().reason,
                 response_data=bad_request_model.parse_obj(
                     {
                         "validation_error": {

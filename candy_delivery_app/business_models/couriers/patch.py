@@ -32,7 +32,7 @@ class CourierIdRequest(CourierIdForQuery):
         if error is not None:
             raise web.HTTPBadRequest
 
-        return 200, "OK", cls.success_handler(values)
+        return web.HTTPOk.status_code, web.HTTPOk().reason, cls.success_handler(values)
 
     @staticmethod
     def success_handler(values):
@@ -52,11 +52,11 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
         values, _, error = validate_model(cls, json_data)
 
         if error is not None:
-            return 400, "Bad Request", cls.error_handler(validation_error=error)
+            return web.HTTPBadRequest.status_code, web.HTTPBadRequest().reason,cls.error_handler(validation_error=error)
 
         return (
-            200,
-            "OK",
+            web.HTTPOk.status_code,
+            web.HTTPOk().reason,
             cls.success_handler({"new_data": values, "courier_id": data}),
         )
 
@@ -90,7 +90,7 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
         cls, session: AsyncSession, request: Request
     ) -> ApiResponse:
         status_code, reason, data = await cls.get_model_from_json_data(request=request)
-        if status_code == 400:
+        if status_code == web.HTTPBadRequest.status_code:
             return ApiResponse(
                 status_code=status_code,
                 reason=reason,

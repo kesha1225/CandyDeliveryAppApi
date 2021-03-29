@@ -47,8 +47,8 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
             raise web.HTTPBadRequest
 
         return (
-            200,
-            "OK",
+            web.HTTPOk.status_code,
+            web.HTTPOk().reason,
             cls.success_handler(values),
         )
 
@@ -62,7 +62,7 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
     ) -> ApiResponse:
         json_data = await request.json()
 
-        status_code, reason, data = await cls.get_model_from_json_data(json_data)
+        response, reason, data = await cls.get_model_from_json_data(json_data)
 
         assign_time, orders = await Order.get_orders_for_courier(
             session=session, courier_id=data["courier_id"]
@@ -77,7 +77,9 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
 
         model = OrdersAssignPostResponseModel(**response_data)
 
-        return ApiResponse(status_code=200, reason="OK", response_data=model)
+        return ApiResponse(status_code=response,
+                           reason=reason,
+                           response_data=model)
 
 
 class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
@@ -90,8 +92,8 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
             raise web.HTTPBadRequest
 
         return (
-            200,
-            "OK",
+            web.HTTPOk.status_code,
+            web.HTTPOk().reason,
             cls.success_handler(values),
         )
 
@@ -128,7 +130,7 @@ class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
             session=session, order_id=order_id, complete_time=complete_time
         )
         return ApiResponse(
-            status_code=200,
-            reason="OK",
+            status_code=web.HTTPOk.status_code,
+            reason=web.HTTPOk().reason,
             response_data=OrdersCompletePostResponseModel(**{"order_id": order_id}),
         )
