@@ -25,7 +25,7 @@
 8) Для локального запуска - ```python __main__.py```
 
 
-#### API и запуск на прод
+## API и запуск на прод
 
 
 > API по умолчанию запущен в сервисе systemd с названием api.service.
@@ -38,11 +38,11 @@
 gunicorn app:app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
 ```
 
-#### Тесты
+## Тесты
 Для запуска тестов после установки в активированном виртуальном окружении 
 запустите ```pytest tests/```
 
-#### База
+## База
 
 Сервис использует базу postgresql.
 Находится на сервере она на postgresql+asyncpg://postgres:samedov@localhost:5432/api
