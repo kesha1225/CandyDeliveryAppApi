@@ -53,6 +53,8 @@ gunicorn app:app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
 
 Для сброса базы можно использовать ```python3 update_base.py```
 
+(После этого желательно перезагрузить сервис - ```sudo systemctl restart api```)
+
 ## Дополнительная информация
 
 Внешние библиотеки подробно описаны в [pyproject.toml](https://github.com/kesha1225/CandyDeliveryAppApi/blob/master/pyproject.toml)
