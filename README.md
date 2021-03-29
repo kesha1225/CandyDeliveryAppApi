@@ -5,22 +5,22 @@
 
 ## Установка
 
-0.1) Обновите пакеты - ```sudo apt update```
+1) Обновите пакеты - ```sudo apt update```
 
-0.2) Поставьте PostgreSQL - ```sudo apt install postgresql postgresql-contrib```
+2) Поставьте PostgreSQL - ```sudo apt install postgresql postgresql-contrib```
 
-1) Склонируйте [репозиторий](https://github.com/kesha1225/CandyDeliveryAppApi)
+3) Склонируйте [репозиторий](https://github.com/kesha1225/CandyDeliveryAppApi)
 
-2) Смените рабочую директорию ```cd CandyDeliveryAppApi/```
+4) Смените рабочую директорию ```cd CandyDeliveryAppApi/```
 
-3) Создайте виртуальное окружение (если его нет) - ```python3 -m virtualenv venv``` 
+5) Создайте виртуальное окружение (если его нет) - ```python3 -m virtualenv venv``` 
    и активируйте его - ```source venv/bin/activate```
    
-2) Установите менеджер пакетов poetry - ```pip install poetry```
+6) Установите менеджер пакетов poetry - ```pip install poetry```
 
-3) Установите зависимости - ```poetry install```
+7) Установите зависимости - ```poetry install```
 
-4) Для локального запуска - ```python __main__.py```
+8) Для локального запуска - ```python __main__.py```
 
 
 #### API и запуск на прод
