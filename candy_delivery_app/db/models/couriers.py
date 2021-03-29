@@ -8,8 +8,8 @@ from sqlalchemy import (
     FLOAT,
     JSON,
     String,
-    select,
 )
+from sqlalchemy.future import select
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload

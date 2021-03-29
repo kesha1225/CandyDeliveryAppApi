@@ -3,9 +3,9 @@ from typing import Optional, List, Tuple, Union
 
 from aiohttp import web
 from sqlalchemy import Column, Integer, ARRAY
+from sqlalchemy.future import select
 from sqlalchemy import (
     Float,
-    select,
     JSON,
     String,
     and_,

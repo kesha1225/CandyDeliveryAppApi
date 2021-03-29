@@ -3,7 +3,7 @@ import os
 
 import dotenv
 from aiohttp.test_utils import TestClient
-from sqlalchemy import select
+from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from candy_delivery_app.db.context_uri import DB_URI

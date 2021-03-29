@@ -1,6 +1,7 @@
 from typing import Union, List, Optional, Tuple, TypeVar
 
-from sqlalchemy import select, update
+from sqlalchemy.future import select
+from sqlalchemy import update
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload

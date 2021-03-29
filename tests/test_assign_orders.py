@@ -4,7 +4,7 @@ import json
 import os
 
 import dotenv
-from sqlalchemy import select
+from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from candy_delivery_app.db.context_uri import DB_URI
