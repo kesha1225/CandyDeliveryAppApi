@@ -139,19 +139,19 @@ async def test_get_couriers(cli, session_):
 
     json_data = json.loads(await resp.json())
     orders_ids = sorted([order["id"] for order in json_data["orders"]])
-    assert orders_ids == [1, 4, 6, 7, 8, 9]
+    assert orders_ids == [2, 4, 6, 7, 8, 9]
 
     assign_time = json_data["assign_time"]
 
     resp2 = await cli.post("/orders/assign", json={"courier_id": courier_id})
     json_data2 = json.loads(await resp2.json())
     orders_ids = sorted([order["id"] for order in json_data2["orders"]])
-    assert orders_ids == [1, 4, 6, 7, 8, 9]
+    assert orders_ids == [2, 4, 6, 7, 8, 9]
 
     resp3 = await cli.post("/orders/assign", json={"courier_id": 3})
     json_data3 = json.loads(await resp3.json())
     orders_ids = sorted([order["id"] for order in json_data3["orders"]])
-    assert orders_ids == [3]
+    assert orders_ids == [1, 3]
 
     resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
     courier_data = json.loads(await resp.json())
@@ -163,7 +163,7 @@ async def test_get_couriers(cli, session_):
     assert courier_data["earnings"] == 0
 
     current_orders = (
-        await session_.execute(select(Order).where(Order.id.in_([9, 8, 6, 7, 1, 4])))
+        await session_.execute(select(Order).where(Order.id.in_([9, 8, 6, 7, 2, 4])))
     ).fetchall()
 
     current_orders = [order[0] for order in current_orders]
@@ -198,7 +198,7 @@ async def test_get_couriers(cli, session_):
     await session_.commit()
 
     current_orders = (
-        await session_.execute(select(Order).where(Order.id.in_([9, 8, 6, 7, 1, 4])))
+        await session_.execute(select(Order).where(Order.id.in_([9, 8, 6, 7, 2, 4])))
     ).fetchall()
     current_orders = [order[0] for order in current_orders]
 
@@ -215,8 +215,8 @@ async def test_get_couriers(cli, session_):
     ).first()[0]
     assert current_courier.earnings == 15000
 
-    assert len(current_courier.delivery_data["regions"]["12"]) == 5
-    assert len(current_courier.delivery_data["regions"]["9"]) == 1
+    assert len(current_courier.delivery_data["regions"]["12"]) == 4
+    assert len(current_courier.delivery_data["regions"]["9"]) == 2
 
     resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
     courier_data = json.loads(await resp.json())
@@ -225,7 +225,7 @@ async def test_get_couriers(cli, session_):
     assert courier_data["courier_type"] == "bike"
     assert courier_data["regions"] == [9, 12, 11]
     assert courier_data["working_hours"] == ["09:00-18:00"]
-    assert courier_data["rating"] == 2.5
+    assert courier_data["rating"] == 2.08
     assert courier_data["earnings"] == 15000
 
     assert current_courier.orders == []

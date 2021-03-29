@@ -5,6 +5,7 @@ from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from candy_delivery_app.business_models.orders.utils import get_best_orders
 from candy_delivery_app.db.models.utils import check_courier_can_delivery_by_time
 from candy_delivery_app.models.utils import get_timedeltas_from_string
 
@@ -66,7 +67,9 @@ class BaseDbModel:
         ...
 
     @classmethod
-    async def patch(cls: T, session: AsyncSession, _id: int, new_data: dict) -> Row:
+    async def patch(
+        cls: T, session: AsyncSession, _id: int, new_data: dict
+    ) -> Optional[Row]:
         # Патч по сути только для курьеров
 
         update_data = {}
@@ -85,12 +88,16 @@ class BaseDbModel:
 
             update_data[key] = value
 
-        await session.execute(
+        response = await session.execute(
             update(cls)
             .where(cls.id == _id)
             .options(selectinload(cls.orders))
             .values(update_data)
+            .returning(cls)
         )
+
+        if not response.fetchall():
+            return None
 
         new_object = (
             await session.execute(
@@ -98,10 +105,14 @@ class BaseDbModel:
             )
         ).first()[0]
 
-        if new_object.orders:
+        new_object_orders = get_best_orders(
+            new_object.orders, capacity=new_object.get_capacity()
+        )
+
+        if new_object_orders:
             new_orders = []
             orders_sum_weight = 0
-            for order in new_object.orders:
+            for order in new_object_orders:
                 for order_timedelta in order.delivery_hours_timedeltas:
                     for courier_timedelta in new_object.working_hours_timedeltas:
                         if (
@@ -120,7 +131,6 @@ class BaseDbModel:
                                 orders_sum_weight + order.weight, 2
                             )
                             new_orders.append(order)
-
             for order in new_object.orders:
                 if order not in new_orders:
                     order.assign_time = None

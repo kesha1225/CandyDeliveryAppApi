@@ -120,11 +120,11 @@ async def test_couriers_complete_many(cli, session_):
     resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
 
     json_data = json.loads(await resp.json())
-    assert json_data["orders"] == [{"id": 7}, {"id": 6}, {"id": 1}, {"id": 4}]
+    assert json_data["orders"] == [{'id': 2}, {'id': 4}, {'id': 6}, {'id': 7}]
     assign_time = json_data["assign_time"]
 
     current_orders = (
-        await session_.execute(select(Order).where(Order.id.in_([1, 4, 6, 7])))
+        await session_.execute(select(Order).where(Order.id.in_([2, 4, 6, 7])))
     ).fetchall()
 
     current_orders = [order[0] for order in current_orders]
@@ -161,7 +161,7 @@ async def test_couriers_complete_many(cli, session_):
         if i in [1, 2, 3]:
             assert courier_data.get("rating") is None
         else:
-            assert courier_data.get("rating") == 4.17
+            assert courier_data.get("rating") == 3.96
 
         resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
 
@@ -170,7 +170,7 @@ async def test_couriers_complete_many(cli, session_):
         "/orders/complete",
         json={
             "courier_id": courier_id,
-            "order_id": 2,
+            "order_id": 1,
             "complete_time": (now + datetime.timedelta(minutes=40)).isoformat(),
         },
     )
@@ -196,10 +196,15 @@ async def test_couriers_complete_many(cli, session_):
     )
     json_data = json.loads(await r.json())
     assert json_data["orders"] == [{"id": 8}, {"id": 9}]
+    c = await session_.execute(select(Courier).where(Courier.id == courier_id).options(selectinload(Courier.orders)))
+
+    s = 0
+    for order in c.fetchall()[0][0].orders:
+        s += order.weight
 
     resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
     json_data = json.loads(await resp.json())
-    assert json_data["orders"] == [{"id": 9}, {"id": 8}]
+    assert json_data["orders"] == [{"id": 8}, {"id": 9}]
     old_resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
     old_resp_json = json.loads(await old_resp.json())
 

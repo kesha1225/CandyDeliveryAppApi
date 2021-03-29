@@ -22,6 +22,7 @@ from .base import BaseDbModel
 from .couriers import Courier
 from .utils import check_courier_can_delivery_by_time
 from ..db import Base
+from ...business_models.orders.utils import get_best_orders
 
 
 class Order(Base, BaseDbModel):
@@ -83,13 +84,14 @@ class Order(Base, BaseDbModel):
         if courier.orders:
             return courier.orders[0].assign_time, courier.orders
 
-        raw_orders = orders.fetchall()
+        raw_orders = get_best_orders(
+            [raw_order[0] for raw_order in orders.fetchall()],
+            capacity=courier.get_capacity(),
+        )
 
         assign_time = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
 
-        for raw_order in raw_orders:
-            order = raw_order[0]
-
+        for order in raw_orders:
             for order_timedelta in order.delivery_hours_timedeltas:
                 for courier_timedelta in courier.working_hours_timedeltas:
                     if (
@@ -137,6 +139,7 @@ class Order(Base, BaseDbModel):
                 .options(selectinload(Courier.orders))
             )
         ).fetchall()[0][0]
+        cid = order.courier_id
 
         order.courier.earnings += order.cost
 

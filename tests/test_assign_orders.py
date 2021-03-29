@@ -4,6 +4,8 @@ import json
 import os
 
 import dotenv
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from candy_delivery_app.db.context_uri import DB_URI
 from candy_delivery_app.db.db import update_base, session
@@ -217,4 +219,112 @@ async def test_diff_time(cli, session_):
 
     r = await cli.post("/orders/assign", json={"courier_id": 1})
     json_data = json.loads(await r.json())
-    assert json_data["orders"] == [{'id': 1}]
+    assert json_data["orders"] == [{"id": 1}]
+
+
+async def test_weight_time(cli, session_):
+    await update_base()
+    await update_base()
+    await Courier.create_couriers(
+        json_data={
+            "data": [
+                {
+                    "courier_id": 1,
+                    "courier_type": "car",
+                    "regions": [22],
+                    "working_hours": ["11:35-14:05", "09:00-11:00"],
+                },
+            ]
+        },
+        session=session_,
+    )
+
+    await cli.post(
+        "/orders",
+        json={
+            "data": [
+                {
+                    "order_id": 1,
+                    "weight": 26,
+                    "region": 22,
+                    "delivery_hours": ["10:00-11:00"],
+                },
+                {
+                    "order_id": 2,
+                    "weight": 26,
+                    "region": 22,
+                    "delivery_hours": ["10:00-11:00"],
+                },
+                {
+                    "order_id": 3,
+                    "weight": 40,
+                    "region": 22,
+                    "delivery_hours": ["10:00-11:00"],
+                },
+            ]
+        },
+    )
+
+    r = await cli.post("/orders/assign", json={"courier_id": 1})
+    json_data = json.loads(await r.json())
+    assert json_data["orders"] == [{"id": 3}]
+
+
+async def test_weight_patch_order(cli, session_):
+    await update_base()
+    await Courier.create_couriers(
+        json_data={
+            "data": [
+                {
+                    "courier_id": 1,
+                    "courier_type": "car",
+                    "regions": [22],
+                    "working_hours": ["11:35-14:05", "09:00-11:00"],
+                },
+            ]
+        },
+        session=session_,
+    )
+
+    await cli.post(
+        "/orders",
+        json={
+            "data": [
+                {
+                    "order_id": 1,
+                    "weight": 5,
+                    "region": 22,
+                    "delivery_hours": ["10:00-11:00"],
+                },
+                {
+                    "order_id": 2,
+                    "weight": 6,
+                    "region": 22,
+                    "delivery_hours": ["10:00-11:00"],
+                },
+                {
+                    "order_id": 3,
+                    "weight": 10,
+                    "region": 22,
+                    "delivery_hours": ["10:00-11:00"],
+                },
+            ]
+        },
+    )
+
+    r = await cli.post("/orders/assign", json={"courier_id": 1})
+    json_data = json.loads(await r.json())
+    assert json_data["orders"] == [{"id": 3}, {"id": 2}, {"id": 1}]
+
+    r = await cli.patch(
+        "/couriers/1",
+        json={"courier_type": "foot"},
+    )
+    courier = (
+        await session_.execute(
+            select(Courier).where(Courier.id == 1).options(selectinload(Courier.orders))
+        )
+    ).fetchall()[0][0]
+
+    assert len(courier.orders) == 1
+    assert courier.orders[0].weight == 10
