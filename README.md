@@ -45,18 +45,21 @@ gunicorn app:app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
 ## База
 
 Сервис использует базу postgresql.
+
 Находится на сервере она на postgresql+asyncpg://postgres:samedov@localhost:5432/api
+
 (Пароль оставлю в ридми, на случай если он вам нужен)
 
 
 Для сброса базы можно использовать ```python3 update_base.py```
 
+## Дополнительная информация
 
 Внешние библиотеки подробно описаны в [pyproject.toml](https://github.com/kesha1225/CandyDeliveryAppApi/blob/master/pyproject.toml)
 и [poetry.lock](https://github.com/kesha1225/CandyDeliveryAppApi/blob/master/poetry.lock)
 
 
-Обработчика 6: GET /couriers/$courier_id реализован
+Обработчик 6: GET /couriers/$courier_id реализован
 
 Структура с подробным описанием ошибок каждого некорректного поля,
 пришедшего в запросе на couriers/post или orders/post выглядит так:
