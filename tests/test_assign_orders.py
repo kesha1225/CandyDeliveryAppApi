@@ -183,3 +183,38 @@ async def test_couriers_assign(cli, session_):
     r = await cli.post("/orders/assign", json={"courier_id": 1337})
     assert r.status == 400
     assert r.reason == "Bad Request"
+
+
+async def test_diff_time(cli, session_):
+    await update_base()
+    await Courier.create_couriers(
+        json_data={
+            "data": [
+                {
+                    "courier_id": 1,
+                    "courier_type": "foot",
+                    "regions": [12321],
+                    "working_hours": ["11:35-14:05", "09:00-11:00"],
+                },
+            ]
+        },
+        session=session_,
+    )
+
+    await cli.post(
+        "/orders",
+        json={
+            "data": [
+                {
+                    "order_id": 1,
+                    "weight": 3,
+                    "region": 12321,
+                    "delivery_hours": ["10:00-11:00"],
+                },
+            ]
+        },
+    )
+
+    r = await cli.post("/orders/assign", json={"courier_id": 1})
+    json_data = json.loads(await r.json())
+    assert json_data["orders"] == [{'id': 1}]
