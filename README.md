@@ -103,8 +103,8 @@ errors_data - дополнительная информация об ошибк�
         ],
         "msg": "ensure this value is greater than or equal to 0",
         "type": "value_error.number.not_ge"
-      },
-      }]}}
-
+      }
+    ]
+  }
+}
 ```
-
