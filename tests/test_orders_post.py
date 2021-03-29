@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 
 import dotenv
@@ -123,7 +122,7 @@ async def test_orders_post_bad(cli, session_):
     )
 
     assert response.status == 400
-    json_data = json.loads(await response.json())
+    json_data = await response.json()
     assert json_data["validation_error"]["orders"] == [{"id": 2}, {"id": 3}]
     assert json_data["validation_error"]["errors_data"] == [
         {

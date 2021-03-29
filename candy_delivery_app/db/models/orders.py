@@ -17,6 +17,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.operators import is_
+from dateutil import parser
 
 from .base import BaseDbModel
 from .couriers import Courier
@@ -89,7 +90,7 @@ class Order(Base, BaseDbModel):
             capacity=courier.get_capacity(),
         )
 
-        assign_time = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
+        assign_time = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
 
         for order in raw_orders:
             for order_timedelta in order.delivery_hours_timedeltas:
@@ -139,7 +140,6 @@ class Order(Base, BaseDbModel):
                 .options(selectinload(Courier.orders))
             )
         ).fetchall()[0][0]
-        cid = order.courier_id
 
         order.courier.earnings += order.cost
 
@@ -150,7 +150,7 @@ class Order(Base, BaseDbModel):
         if order.courier.last_delivery_time is None:
             delivery_time = (
                 complete_time_seconds
-                - datetime.datetime.fromisoformat(order.assign_time).timestamp()
+                - parser.isoparse(order.assign_time).timestamp()
             )
             order.courier.last_delivery_time = complete_time_seconds
         else:

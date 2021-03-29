@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import json
 import os
 
 import dotenv
@@ -107,7 +106,7 @@ async def test_couriers_complete(cli, session_):
 
     resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
 
-    json_data = json.loads(await resp.json())
+    json_data = await resp.json()
     assign_time = json_data["assign_time"]
     order_id = json_data["orders"][0]["id"]
 
@@ -140,7 +139,7 @@ async def test_couriers_complete(cli, session_):
         },
     )
     await session_.commit()
-    json_data = json.loads(await resp.json())
+    json_data = await resp.json()
 
     current_order: Order = (
         await session_.execute(select(Order).where(Order.id == order_id))
@@ -185,7 +184,7 @@ async def test_couriers_complete(cli, session_):
         },
     )
     assert resp.status == 200
-    json_data = json.loads(await resp.json())
+    json_data = await resp.json()
     assert json_data["order_id"] == order_id
 
     resp = await cli.post(

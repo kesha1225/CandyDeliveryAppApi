@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import json
 import os
 
 import dotenv
@@ -137,24 +136,24 @@ async def test_get_couriers(cli, session_):
 
     resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
 
-    json_data = json.loads(await resp.json())
+    json_data = await resp.json()
     orders_ids = sorted([order["id"] for order in json_data["orders"]])
     assert orders_ids == [2, 4, 6, 7, 8, 9]
 
     assign_time = json_data["assign_time"]
 
     resp2 = await cli.post("/orders/assign", json={"courier_id": courier_id})
-    json_data2 = json.loads(await resp2.json())
+    json_data2 = await resp2.json()
     orders_ids = sorted([order["id"] for order in json_data2["orders"]])
     assert orders_ids == [2, 4, 6, 7, 8, 9]
 
     resp3 = await cli.post("/orders/assign", json={"courier_id": 3})
-    json_data3 = json.loads(await resp3.json())
+    json_data3 = await resp3.json()
     orders_ids = sorted([order["id"] for order in json_data3["orders"]])
     assert orders_ids == [1, 3]
 
     resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
-    courier_data = json.loads(await resp.json())
+    courier_data = await resp.json()
 
     assert courier_data["courier_id"] == 2
     assert courier_data["courier_type"] == "bike"
@@ -192,7 +191,7 @@ async def test_get_couriers(cli, session_):
             },
         )
         # resp11 = await cli.post("/orders/assign", json={"courier_id": courier_id})
-        # json_data11 = json.loads(await resp11.json())
+        # json_data11 = await resp11.json()
         assert resp.status == 200
 
     await session_.commit()
@@ -219,7 +218,7 @@ async def test_get_couriers(cli, session_):
     assert len(current_courier.delivery_data["regions"]["9"]) == 2
 
     resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
-    courier_data = json.loads(await resp.json())
+    courier_data = await resp.json()
 
     assert courier_data["courier_id"] == 2
     assert courier_data["courier_type"] == "bike"

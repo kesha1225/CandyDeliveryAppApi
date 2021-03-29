@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import json
 import os
 
 import dotenv
@@ -119,7 +118,7 @@ async def test_couriers_complete_many(cli, session_):
 
     resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
 
-    json_data = json.loads(await resp.json())
+    json_data = await resp.json()
     assert json_data["orders"] == [{'id': 2}, {'id': 4}, {'id': 6}, {'id': 7}]
     assign_time = json_data["assign_time"]
 
@@ -153,11 +152,12 @@ async def test_couriers_complete_many(cli, session_):
                 "complete_time": now.isoformat() + "Z",
             },
         )
-        assert json.loads(await resp.json())["order_id"] == order.id
+        print(await resp.json())
+        assert (await resp.json())["order_id"] == order.id
         assert resp.status == 200
 
         resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
-        courier_data = json.loads(await resp.json())
+        courier_data = await resp.json()
         if i in [1, 2, 3]:
             assert courier_data.get("rating") is None
         else:
@@ -194,7 +194,7 @@ async def test_couriers_complete_many(cli, session_):
             ]
         },
     )
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert json_data["orders"] == [{"id": 8}, {"id": 9}]
     c = await session_.execute(select(Courier).where(Courier.id == courier_id).options(selectinload(Courier.orders)))
 
@@ -203,10 +203,10 @@ async def test_couriers_complete_many(cli, session_):
         s += order.weight
 
     resp = await cli.post("/orders/assign", json={"courier_id": courier_id})
-    json_data = json.loads(await resp.json())
+    json_data = await resp.json()
     assert json_data["orders"] == [{"id": 8}, {"id": 9}]
     old_resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
-    old_resp_json = json.loads(await old_resp.json())
+    old_resp_json = await old_resp.json()
 
     resp = await cli.post(
         "/orders/complete",
@@ -218,7 +218,7 @@ async def test_couriers_complete_many(cli, session_):
     )
 
     new_resp = await cli.get(f"/couriers/{courier_id}", json={"courier_id": courier_id})
-    new_resp_json = json.loads(await new_resp.json())
+    new_resp_json = await new_resp.json()
     assert old_resp_json["rating"] == new_resp_json["rating"]
     assert old_resp_json["earnings"] < new_resp_json["earnings"]
 

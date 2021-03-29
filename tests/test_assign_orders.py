@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import json
 import os
 
 import dotenv
@@ -71,7 +70,7 @@ async def test_couriers_assign_empty(cli, session_):
         session=session_,
     )
     r = await cli.post("/orders/assign", json={"courier_id": 2})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert json_data["orders"] == []
     assert json_data.get("assign_time") is None
 
@@ -156,7 +155,7 @@ async def test_couriers_assign(cli, session_):
     )
 
     r = await cli.post("/orders/assign", json={"courier_id": 2})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert len(json_data["orders"]) == 1
     assert json_data["orders"] == [{"id": 2}]
     assert json_data.get("assign_time") is not None
@@ -164,22 +163,22 @@ async def test_couriers_assign(cli, session_):
     datetime.datetime.fromisoformat(json_data["assign_time"])
 
     r = await cli.post("/orders/assign", json={"courier_id": 6})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert json_data["orders"] == []
     assert json_data.get("assign_time") is None
 
     r = await cli.post("/orders/assign", json={"courier_id": 3})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert json_data["orders"] == []
     assert json_data.get("assign_time") is None
 
     r = await cli.post("/orders/assign", json={"courier_id": 4})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert json_data["orders"] == []
     assert json_data.get("assign_time") is None
 
     r = await cli.post("/orders/assign", json={"courier_id": 5})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert len(json_data["orders"]) == 3
 
     r = await cli.post("/orders/assign", json={"courier_id": 1337})
@@ -218,7 +217,7 @@ async def test_diff_time(cli, session_):
     )
 
     r = await cli.post("/orders/assign", json={"courier_id": 1})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert json_data["orders"] == [{"id": 1}]
 
 
@@ -266,7 +265,7 @@ async def test_weight_time(cli, session_):
     )
 
     r = await cli.post("/orders/assign", json={"courier_id": 1})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert json_data["orders"] == [{"id": 3}]
 
 
@@ -313,7 +312,7 @@ async def test_weight_patch_order(cli, session_):
     )
 
     r = await cli.post("/orders/assign", json={"courier_id": 1})
-    json_data = json.loads(await r.json())
+    json_data = await r.json()
     assert json_data["orders"] == [{"id": 3}, {"id": 2}, {"id": 1}]
 
     r = await cli.patch(

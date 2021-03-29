@@ -2,7 +2,6 @@ import asyncio
 import os
 
 import dotenv
-from aiohttp.test_utils import TestClient
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 

@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 
 import dotenv
@@ -121,7 +120,7 @@ async def test_couriers_post_bad(cli, session_):
             ]
         },
     )
-    json_response = json.loads(await response.json())
+    json_response = await response.json()
 
     assert json_response["validation_error"]["couriers"] == [{"id": 1}]
     assert json_response["validation_error"]["errors_data"][0]["location"] == [
@@ -157,7 +156,7 @@ async def test_couriers_post_bad(cli, session_):
             ]
         },
     )
-    json_response = json.loads(await response.json())
+    json_response = await response.json()
     assert json_response["validation_error"]["couriers"] == [{"id": 3}]
     assert json_response["validation_error"]["errors_data"][0]["location"] == [
         "data",
@@ -191,7 +190,7 @@ async def test_couriers_post_bad(cli, session_):
             ]
         },
     )
-    json_response = json.loads(await response.json())
+    json_response = await response.json()
     assert json_response["validation_error"]["couriers"] == [
         {"id": 1},
         {"id": 2},
@@ -225,7 +224,7 @@ async def test_couriers_post_bad(cli, session_):
             ]
         },
     )
-    json_response = json.loads(await response.json())
+    json_response = await response.json()
     assert json_response == {"couriers": [{"id": 1}]}
 
     response = await cli.post(
@@ -241,7 +240,7 @@ async def test_couriers_post_bad(cli, session_):
             ]
         },
     )
-    json_response = json.loads(await response.json())
+    json_response = await response.json()
     assert response.status == 400
     assert response.reason == "Bad Request"
     assert json_response["validation_error"]["couriers"] == [{"id": 1}]

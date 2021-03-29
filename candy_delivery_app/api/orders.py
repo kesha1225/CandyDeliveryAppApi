@@ -1,3 +1,5 @@
+import json
+
 from aiohttp import web
 from aiohttp.web_request import Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +19,7 @@ orders_router = web.RouteTableDef()
 async def create_orders(request: Request, session: AsyncSession):
     response = await OrdersPostRequest.create_orders(session=session, request=request)
     return web.json_response(
-        data=response.response_data.json(),
+        data=response.response_data.dict(),
         status=response.status_code,
         reason=response.reason,
     )
@@ -31,7 +33,7 @@ async def assign_orders(request: Request, session: AsyncSession):
     )
 
     return web.json_response(
-        data=response.response_data.json(exclude_none=True),
+        data=json.loads(response.response_data.json(exclude_none=True)),
         status=response.status_code,
         reason=response.reason,
     )
@@ -44,7 +46,7 @@ async def complete_orders(request: Request, session: AsyncSession):
         session=session, request=request
     )
     return web.json_response(
-        data=response.response_data.json(),
+        data=response.response_data.dict(),
         status=response.status_code,
         reason=response.reason,
     )

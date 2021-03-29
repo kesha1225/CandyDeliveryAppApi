@@ -20,7 +20,7 @@ async def create_couriers(request: Request, session: AsyncSession):
         session=session, request=request
     )
     return web.json_response(
-        data=response.response_data.json(),
+        data=response.response_data.dict(),
         status=response.status_code,
         reason=response.reason,
     )
@@ -33,7 +33,7 @@ async def patch_courier(request: Request, session: AsyncSession):
         session=session, request=request
     )
     return web.json_response(
-        data=response.response_data.json(),
+        data=response.response_data.dict(),
         status=response.status_code,
         reason=response.reason,
     )
@@ -45,7 +45,7 @@ async def get_courier(request: Request, session: AsyncSession):
 
     response = await CouriersGetRequest.get_courier(session=session, request=request)
     return web.json_response(
-        data=response.response_data.json(exclude_none=True),
+        data=response.response_data.dict(exclude_none=True),
         status=response.status_code,
         reason=response.reason,
     )
