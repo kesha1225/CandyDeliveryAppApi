@@ -3,7 +3,7 @@ import re
 from typing import List, Dict
 
 from candy_delivery_app.models import HOURS_LIST
-
+from candy_delivery_app.models._types import HOURS_LIST_
 
 period_re = re.compile(r"^(\d\d):(\d\d)-(\d\d):(\d\d)$")
 
@@ -17,7 +17,7 @@ def get_hours_and_minutes_from_str(raw_date: str):
     return first_hour, first_minute, second_hour, second_minute
 
 
-def hours_validate(value: HOURS_LIST):
+def hours_validate(value: HOURS_LIST_):
     for raw_period in value:
         (
             first_hour,
@@ -34,7 +34,7 @@ def hours_validate(value: HOURS_LIST):
     return value
 
 
-def get_timedeltas_from_string(value: HOURS_LIST) -> List[Dict[str, int]]:
+def get_timedeltas_from_string(value: HOURS_LIST_) -> List[Dict[str, int]]:
     new_values = []
     for raw_period in value:
         (

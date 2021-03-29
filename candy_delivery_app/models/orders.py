@@ -45,11 +45,7 @@ class OrdersAssignPostRequestModel(CoreModel):
     courier_id: COURIER_ID
 
 
-class OrdersAssignPostEmptyResponseModel(CoreModel):
-    orders: List[OrderId]
-
-
-class OrdersAssignPostResponseModel(OrdersAssignPostEmptyResponseModel):
+class OrdersAssignPostResponseModel(CoreModel):
     orders: List[OrderId]
     assign_time: Optional[datetime.datetime]
 

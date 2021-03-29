@@ -31,7 +31,7 @@ async def assign_orders(request: Request, session: AsyncSession):
     )
 
     return web.json_response(
-        data=response.response_data.json(),
+        data=response.response_data.json(exclude_none=True),
         status=response.status_code,
         reason=response.reason,
     )

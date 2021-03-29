@@ -1,4 +1,4 @@
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List, Union
 
 from aiohttp import web
 from aiohttp.web_request import Request
@@ -16,7 +16,6 @@ from candy_delivery_app.models.orders import (
     OrdersBadRequestModel,
     OrdersAssignPostRequestModel,
     OrdersAssignPostResponseModel,
-    OrdersAssignPostEmptyResponseModel,
     OrdersCompletePostRequestModel,
     OrdersCompletePostResponseModel,
 )
@@ -68,16 +67,15 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
         assign_time, orders = await Order.get_orders_for_courier(
             session=session, courier_id=data["courier_id"]
         )
-        response_data = {"orders": []}
+        response_data: Dict[str, Union[List[Dict[str, int]], str]] = {"orders": []}
 
         for order in orders:
             response_data["orders"].append({"id": order.id})
 
         if orders:
             response_data["assign_time"] = assign_time
-            model = OrdersAssignPostResponseModel(**response_data)
-        else:
-            model = OrdersAssignPostEmptyResponseModel(**response_data)
+
+        model = OrdersAssignPostResponseModel(**response_data)
 
         return ApiResponse(status_code=200, reason="OK", response_data=model)
 

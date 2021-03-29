@@ -4,9 +4,10 @@ from ..models._types import STATUS_CODE, REASON
 from ..models.couriers import (
     CouriersBadRequestModel,
     CouriersIds,
-    CourierUpdateResponseModel, CourierGetResponseModel,
+    CourierUpdateResponseModel, CourierGetResponseModel, CourierUpdateBadRequestModel,
 )
-from ..models.orders import OrdersAssignPostResponseModel, OrdersCompletePostResponseModel
+from ..models.orders import OrdersAssignPostResponseModel, OrdersCompletePostResponseModel, OrdersBadRequestModel, \
+    OrdersIds
 
 
 class ApiResponse:
@@ -16,12 +17,14 @@ class ApiResponse:
         reason: REASON,
         response_data: Union[
             CouriersIds,
+            OrdersIds,
             CouriersBadRequestModel,
-            dict,
             CourierUpdateResponseModel,
             OrdersAssignPostResponseModel,
             OrdersCompletePostResponseModel,
-            CourierGetResponseModel
+            CourierGetResponseModel,
+            CourierUpdateBadRequestModel,
+            OrdersBadRequestModel,
         ],
     ):
         self.status_code = status_code
