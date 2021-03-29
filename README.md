@@ -13,9 +13,11 @@
 
 4) Смените рабочую директорию ```cd CandyDeliveryAppApi/```
 
-5) Создайте виртуальное окружение (если его нет) - ```python3 -m virtualenv venv``` 
-   и активируйте его - ```source venv/bin/activate```
-   
+5) Создайте виртуальное окружение (если его нет) и активируйте его
+   - ```
+     python3 -m virtualenv venv
+     source venv/bin/activate
+     ```
 6) Установите менеджер пакетов poetry - ```pip install poetry```
 
 7) Установите зависимости - ```poetry install```
