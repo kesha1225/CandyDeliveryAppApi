@@ -43,7 +43,9 @@ class BaseBusinessPostModel:
 
         errors_data = []
 
-        if json_data["data"]:  # нам могут отправить пустой список (вообще не могу, но пусть будет)
+        if json_data[
+            "data"
+        ]:  # нам могут отправить пустой список (вообще не могу, но пусть будет)
             for error in validation_error.errors():
                 errors_data.append(
                     {

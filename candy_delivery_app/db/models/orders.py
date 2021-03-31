@@ -90,7 +90,9 @@ class Order(Base, BaseDbModel):
             capacity=courier.get_capacity(),
         )
 
-        assign_time = datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+        assign_time = (
+            datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+        )
 
         for order in raw_orders:
             for order_timedelta in order.delivery_hours_timedeltas:
@@ -149,8 +151,7 @@ class Order(Base, BaseDbModel):
         complete_time_seconds = complete_time.timestamp()
         if order.courier.last_delivery_time is None:
             delivery_time = (
-                complete_time_seconds
-                - parser.isoparse(order.assign_time).timestamp()
+                complete_time_seconds - parser.isoparse(order.assign_time).timestamp()
             )
             order.courier.last_delivery_time = complete_time_seconds
         else:

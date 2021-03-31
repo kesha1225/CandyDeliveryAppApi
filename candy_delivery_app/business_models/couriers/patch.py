@@ -52,7 +52,11 @@ class CouriersUpdateRequest(CourierUpdateRequestModel):
         values, _, error = validate_model(cls, json_data)
 
         if error is not None:
-            return web.HTTPBadRequest.status_code, web.HTTPBadRequest().reason,cls.error_handler(validation_error=error)
+            return (
+                web.HTTPBadRequest.status_code,
+                web.HTTPBadRequest().reason,
+                cls.error_handler(validation_error=error),
+            )
 
         return (
             web.HTTPOk.status_code,

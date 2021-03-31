@@ -77,9 +77,7 @@ class OrdersAssignPostRequest(OrdersAssignPostRequestModel):
 
         model = OrdersAssignPostResponseModel(**response_data)
 
-        return ApiResponse(status_code=response,
-                           reason=reason,
-                           response_data=model)
+        return ApiResponse(status_code=response, reason=reason, response_data=model)
 
 
 class OrdersCompletePostRequest(OrdersCompletePostRequestModel):
